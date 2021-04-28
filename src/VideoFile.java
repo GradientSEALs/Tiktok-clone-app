@@ -13,6 +13,17 @@ public class VideoFile {
     public byte[] videoFileChunk;
 
 
-
-
+    public VideoFile(String videoName, String channelName, String dateCreated, String length, String framerate,
+                     String frameWidth, String frameHeight, ArrayList<String> associatedHashtags, byte[] videoFileChunk)
+    {
+        this.videoName = videoName;
+        this.channelName = channelName;
+        this.dateCreated = dateCreated;
+        this.length = length;
+        this.framerate = framerate;
+        this.frameWidth = frameWidth;
+        this.frameHeight = frameHeight;
+        this.associatedHashtags = associatedHashtags;
+        this.videoFileChunk = videoFileChunk;
+    }
 }

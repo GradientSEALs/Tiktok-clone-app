@@ -1,23 +1,45 @@
+import java.io.IOException;
+import java.util.*;
+import java.net.ServerSocket;
+import java.net.Socket;
+
+
 public class Broker extends Node {
 
-    List <Consumer> registeredUsers = new List<Consumer>();
-    List <Publisher> registeredPublishers = new List<Publisher>();
+    List<Consumer> registeredUsers = new List<>();
+    List<Publisher> registeredPublishers = new List<>();
 
-    /*public static void main(String @NotNull [] args) throws Exception {
-        int port = Integer.parseInt(args[0]);
-        ServerSocket s = new ServerSocket(port);
+    public static void main(String args[]) throws IOException {
+        ServerSocket providerSocket;
+        Socket connection = null;
 
-        while (true) {
-            Socket so = s.accept();
-            Handler handler = new Handler(so);
-            handler.start();
-            System.out.println("A new client was connected");
-        }*/
+        try {
+            providerSocket = new ServerSocket(1441, 10);
+            System.out.println("The server is open at port: " + 1441);
+            System.out.println("Server socket created.Waiting for connection...");
 
+            while (true) {
+                try {
+                    //Client connection
+                    connection = providerSocket.accept();
+                    Thread handler = new Handler(connection);
+                    handler.start();
 
+                } catch (Exception e) {
+                    System.err.println("IOException");
+                }
 
+            }
+        } catch (IOException e) {
+            System.err.println("IOException");
+        }
 
     }
+
+
+
+
+
 
 
 
