@@ -3,7 +3,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.io.ObjectOutputStream;
 
-public class Publisher {
+public class Publisher implements Node {
 
     private ChannelName channelName;
     public ArrayList <String> hashtags = new ArrayList<>();
@@ -24,6 +24,30 @@ public class Publisher {
     public void getBrokerList(){
         for (int i=0;i<hashtags.size();i++)
             System.out.println(hashtags.get(i));
+    }
+
+    @Override
+    public void getBrokers() {
+        for (int i=0;i<brokers.size();i++)
+            System.out.println(brokers.get(i));
+    }
+
+    @Override
+    public void connect() {
+        System.out.println("Connection");
+
+    }
+
+    @Override
+    public void disconnect() {
+        System.out.println("Disconnect");
+
+    }
+
+    @Override
+    public void updateNodes() {
+        System.out.println("UpdateNodes");
+
     }
 
     //public Broker hashTopic(String hashTopic)

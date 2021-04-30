@@ -4,7 +4,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 
-public class Broker extends Node {
+public class Broker implements Node {
 
     List<Consumer> registeredUsers = new List<>();
     List<Publisher> registeredPublishers = new List<>();
@@ -37,19 +37,43 @@ public class Broker extends Node {
     }
 
 
+    @Override
+    public void getBrokers() {
+        for (int i=0;i<brokers.size();i++)
+            System.out.println(brokers.get(i));
+    }
 
+    @Override
+    public void connect() {
+        System.out.println("Connection");
 
+    }
 
+    @Override
+    public void disconnect() {
+        System.out.println("Disconnect");
 
+    }
 
+    @Override
+    public void updateNodes() {
+        System.out.println("UpdateNodes");
 
+    }
 
+    //public void calculateKeys()
 
+    //public Publisher acceptConnection()
 
+    //public Consumer acceptConsumer()
 
+    //public void notifyPublisher(String s)
 
+    //public void notifyBrokersOnChanges()
 
+    //public void pull (String s)
 
+    //public String finalConsumer()
 
 
 
