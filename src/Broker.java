@@ -1,80 +1,86 @@
-import java.io.IOException;
-import java.util.*;
+import java.io.*;
+import java.math.BigInteger;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 
+@SuppressWarnings("all")
 
 public class Broker extends Node {
 
-    List<Consumer> registeredUsers = new List<>();
-    List<Publisher> registeredPublishers = new List<>();
+    ArrayList<Consumer> registeredUsers = new ArrayList<>();
+    ArrayList<Publisher> registeredPublishers = new ArrayList<>();
 
-    public static void main(String[] args) throws Exception{
-        int port = Integer.parseInt(args[0]);
-        ServerSocket s = new ServerSocket(port);
+    public static void main(String[] args) throws IOException {
+        ServerSocket providerSocket;
+        Socket connection = null;
 
+        try {
+            providerSocket = new ServerSocket(1441, 10);
+            System.out.println("The server is open at port: " + 1441);
+            System.out.println("Server socket created.Waiting for connection...");
 
-        while(true){
-            Socket so = s.accept();
-            Handler handler = new Handler(so);
-            handler.start();
-            System.out.println("A new client was connected");
+            //nonit
+            while (true) {
+                try {
+                    //Client connection
+                    connection = providerSocket.accept();
+                    //Thread handler = new Handler(connection);
+                    //handler.start();
+
+                } catch (Exception e) {
+                    System.err.println("IOException");
+                }
+
+            }
+        } catch (IOException e) {
+            System.err.println("IOException");
         }
+
     }
 
-
     public static class Handler extends Thread{
-        ConsumerHandler consumerh;
-        PublisherHandler publisherh;
-        Socket so;
-
-        public Handler(Socket so){
-            this.so =so;
-        }
-
-        public void run(){
-            consumerh = new ConsumerHandler(this);
-            publisherh = new PublisherHandler(this);
-            consumerh.start();
-            publisherh.start();
-
+        BufferedReader bf;
+        DataOutputStream dos;
+        PrintWriter pr;
+        InputStream in;
+        OutputStream out;
+        Handler(Socket so){
             try{
-                consumerh.join();
-                publisherh.join();
-            }
-            catch(InterruptedException e){
+                bf = new BufferedReader(new InputStreamReader(so.getInputStream()));
+                dos = new DataOutputStream(so.getOutputStream());
+                pr= new PrintWriter(so.getOutputStream(),true);
+            }catch (Exception e){
                 e.printStackTrace();
             }
         }
+    }
+/*    @Override
+    public List<Broker> getBrokers() {
+        for (int i=0;i<brokers.size();i++)
+            System.out.println(brokers.get(i));
+        return null;
+    }
 
+    @Override
+    public void connect() {
+        System.out.println("Connection");
 
     }
 
-    public static class PublisherHandler extends Thread {
-        Handler parent;
+    @Override
+    public void disconnect() {
+        System.out.println("Disconnect");
 
-        public PublisherHandler(Handler parent) {
-            this.parent = parent;
-        }
-
-        @Override
-        public void run() {
-
-        }
     }
 
-    public static class ConsumerHandler extends Thread {
-        Handler parent;
+    @Override
+    public void updateNodes() {
+        System.out.println("UpdateNodes");
 
-        public ConsumerHandler(Handler parent) {
-            this.parent = parent;
-        }
-
-        @Override
-        public void run() {
-
-        }
-    }
+    }*/
 
     //public void calculateKeys()
 
@@ -90,7 +96,24 @@ public class Broker extends Node {
 
     //public String finalConsumer()
 
+    public String calculateHash(String input) throws NoSuchAlgorithmException {
+        MessageDigest md = MessageDigest.getInstance("SHA-1");
+        byte[] messageDigest = md.digest(input.getBytes());
 
+        // Convert byte array into signum representation
+        BigInteger no = new BigInteger(1, messageDigest);
+
+        // Convert message digest into hex value
+        String hashtext = no.toString(16);
+
+        // Add preceding 0s to make it 32 bit
+        while (hashtext.length() < 32) {
+            hashtext = "0" + hashtext;
+        }
+
+        // return the HashText
+        return hashtext;
+    }
 
 
 }

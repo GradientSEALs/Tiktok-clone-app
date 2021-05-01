@@ -14,7 +14,7 @@ public class Consumer extends Node {
 
         while (true) {
             Socket so = s.accept();
-            Broker.Handler handler = new Broker.Handler(so);
+            Handler handler = new Handler(so);
             handler.start();
             System.out.println("A new client was connected");
         }

@@ -1,13 +1,14 @@
-import java.io.*;
+import java.util.ArrayList;
+
 public class Node {
 
-    public List<Broker> brokers = new List<Broker>();
+    public ArrayList<Broker> brokers = new ArrayList<>();
 
     public void init(int i){
 
     }
 
-    public List<Broker> getBrokers(){
+    public ArrayList<Broker> getBrokers(){
         return brokers;
     };
 
