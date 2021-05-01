@@ -1,18 +1,25 @@
 import java.io.*;
-public interface Node {
+public class Node {
 
     public List<Broker> brokers = new List<Broker>();
 
-    //public void init(int i)
+    public void init(int i){
 
-    public void getBrokers();
-        //for (int i=0;i<brokers.size();i++)
-            //System.out.println(brokers.get(i));
+    }
 
+    public List<Broker> getBrokers(){
+        return brokers;
+    };
 
-    public void connect();
+    public void connect(){
 
-    public void disconnect();
+    };
 
-    public void updateNodes();
+    public void disconnect(){
+
+    };
+
+    public void updateNodes(){
+
+    };
 }

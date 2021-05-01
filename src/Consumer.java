@@ -3,10 +3,26 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.io.ObjectOutputStream;
 
-public class Consumer implements Node{
+public class Consumer extends Node {
     private ObjectOutputStream buffer;
 
-    public void register (Broker b,String message) {
+
+    public static void main(String[] args) throws Exception {
+        int port = Integer.parseInt(args[0]);
+        ServerSocket s = new ServerSocket(port);
+
+
+        while (true) {
+            Socket so = s.accept();
+            Broker.Handler handler = new Broker.Handler(so);
+            handler.start();
+            System.out.println("A new client was connected");
+        }
+
+
+    }
+
+    public void register(Broker b, String message) {
         try {
             System.out.println("Sending register request...");
             buffer.writeObject(message);
@@ -16,30 +32,23 @@ public class Consumer implements Node{
         }
     }
 
-    @Override
-    public void getBrokers() {
-        for (int i=0;i<brokers.size();i++)
-            System.out.println(brokers.get(i));
+
+    public static class Handler extends Thread {
+
+        Socket so;
+
+        public Handler(Socket so) {
+            this.so = so;
+        }
+
+        public void run() {
+
+
+        }
+
+
+        //public void disconnect (Broker,String)
+
+        //public void playData (String,Value)
     }
-
-    @Override
-    public void connect() {
-        System.out.println("Connection");
-
-    }
-
-    @Override
-    public void disconnect() {
-        System.out.println("Disconnect");
-
-    }
-
-    @Override
-    public void updateNodes() {
-        System.out.println("UpdateNodes");
-
-    }
-    //public void disconnect (Broker,String)
-
-    //public void playData (String,Value)
 }
