@@ -71,44 +71,6 @@ public class Broker extends Node {
             }
         }
     }
-/*    @Override
-    public List<Broker> getBrokers() {
-        for (int i=0;i<brokers.size();i++)
-            System.out.println(brokers.get(i));
-        return null;
-    }
-
-    @Override
-    public void connect() {
-        System.out.println("Connection");
-
-    }
-
-    @Override
-    public void disconnect() {
-        System.out.println("Disconnect");
-
-    }
-
-    @Override
-    public void updateNodes() {
-        System.out.println("UpdateNodes");
-
-    }*/
-
-    //public void calculateKeys()
-
-    //public Publisher acceptConnection()
-
-    //public Consumer acceptConsumer()
-
-    //public void notifyPublisher(String s)
-
-    //public void notifyBrokersOnChanges()
-
-    //public void pull (String s)
-
-    //public String finalConsumer()
 
     public String calculateHash(String input) throws NoSuchAlgorithmException {
         MessageDigest md = MessageDigest.getInstance("SHA-1");
@@ -154,6 +116,22 @@ public class Broker extends Node {
 
         }
     }
+
+
+
+    //public void calculateKeys()
+
+    //public Publisher acceptConnection()
+
+    //public Consumer acceptConsumer()
+
+    //public void notifyPublisher(String s)
+
+    //public void notifyBrokersOnChanges()
+
+    //public void pull (String s)
+
+    //public String finalConsumer()
 }
 
 
