@@ -13,16 +13,15 @@ public class Util {
     //    public static final String BIG_PRIME_NUMBER = "15485867";
     public static final String BIG_PRIME_NUMBER = "7919";
     public static final boolean DEBUG = true;
-    public static Util.Pair<String, Integer> zookeeperConnectionInfo = new Util.Pair<>("localhost", 666);
 
     /**
      *
      * @param videoFile pojo
-     * @return the mp3mp4 binary data for that video
+     * @return the mp4 binary data for that video
      */
-    public static byte[] loadSongFromDiskToRam(VideoFile videoFile){
+    public static byte[] loadVideoFromDiskToRam(String path, String videoFile){
         try{
-            File file = new File("src");
+            File file = new File(path+videoFile);
             FileInputStream fis = new FileInputStream(file);
             byte[] fileData = new byte[(int)file.length()];
             fis.read(fileData);

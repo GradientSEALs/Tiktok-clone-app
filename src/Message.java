@@ -1,5 +1,6 @@
 //import java.io.Serial;
 //import java.io.Serial;
+import java.io.Serial;
 import java.io.Serializable;
 
 public class Message implements Serializable {
@@ -8,7 +9,7 @@ public class Message implements Serializable {
     private String password;
     private int TOKEN_ID;
 
-    //@Serial
+    @Serial
     private static final long serialVersionUID = -2723363051271966964L;
 
     public Message(String username, String password, int TOKEN_ID) {

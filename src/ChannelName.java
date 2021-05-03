@@ -15,5 +15,7 @@ public class ChannelName {
         channelName = name;
     }
 
-
+    public String getChannelName() {
+        return channelName;
+    }
 }

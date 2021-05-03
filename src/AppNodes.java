@@ -101,7 +101,7 @@ public class AppNodes {
                     System.out.println("Please choose hashtag for the video");
                     String hash = skr.nextLine();
                     // perhaps we can also send the ip and port for the appropriate broker
-                    Publisher pr = new Publisher(cn, hash);
+                    //Publisher pr = new Publisher(cn, hash);
                     //pr.start();
 
                 case 4: //find a video
