@@ -11,8 +11,10 @@ import java.util.function.Consumer;
 
 public class Broker extends Node {
 
-    ArrayList<Consumer> registeredUsers = new ArrayList<>();
+    ArrayList<Consumer> registeredConsumers = new ArrayList<>();
     ArrayList<Publisher> registeredPublishers = new ArrayList<>();
+    ArrayList<String> hashtags = new ArrayList<>();
+
 
     public static void main(String[] args) throws IOException {
         ServerSocket providerSocket;
@@ -44,17 +46,19 @@ public class Broker extends Node {
     }
 
     public static class Handler extends Thread{
+        volatile Socket consumerSocket;
+        volatile Socket publisherSocket;
+        PublisherHandler ph;
+        ConsumerHandler ch;
         BufferedReader bf;
         DataOutputStream dos;
         PrintWriter pr;
         InputStream in;
         OutputStream out;
-        Socket consumer;
-        PublisherHandler ph;
-        ConsumerHandler ch;
+
 
         public Handler(Socket so){
-                consumer = so;
+                //consumer = so;
                 ch = new ConsumerHandler(this);
                 ph = new PublisherHandler(this);
                 ch.start();
@@ -91,7 +95,7 @@ public class Broker extends Node {
         return hashtext;
     }
 
-    public static class ConsumerHandler extends Thread{
+    public static class ConsumerHandler extends Thread {
         Handler parent;
 
         public ConsumerHandler(Handler parent){
@@ -113,10 +117,32 @@ public class Broker extends Node {
         }
         @Override
         public void run(){
-
+            return;
         }
     }
+    public Consumer acceptConsumer(){
+        try {
+            ObjectOutputStream outputStream;
+            String ipAddress = super.getIpAddress();
+            int port = super.getPort();
+            boolean exists = registeredConsumers.contains(ipAddress);
+            if (exists){
+                oos.writeByte(-1);
+                oos.flush();
+                System.out.println("This user already exists");
+            }
+            else{
+                registeredConsumers.add(ipAddress);
+                oos.writeByte(1);
+                oos.flush();
+                System.out.println("A new user just registered with ip " + ipAddress);
+                //System.out.println(registeredPeers.get(username).toString());
 
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
 
     //public void calculateKeys()

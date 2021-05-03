@@ -2,28 +2,34 @@ import java.util.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.io.ObjectOutputStream;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 public class Consumer extends Node {
+    private String ipAddress;
+    private int port;
     private ObjectOutputStream buffer;
 
 
-    public static void main(String[] args) throws Exception {
-        int port = Integer.parseInt(args[0]);
-        ServerSocket s = new ServerSocket(port);
+public Consumer(String ipAddress,int port){
+    super(ipAddress,port);
+}
+    public static void main(String[] args) throws Exception{
 
+    Handler handler = new Handler();
 
-        while (true) {
-            Socket so = s.accept();
-            Handler handler = new Handler(so);
-            handler.start();
-            System.out.println("A new client was connected");
-        }
+    //noinspection InfiniteLoopStatement
+        while(true)
+    {
 
+        System.out.println("hi");
 
     }
+}
 
     public void register(Broker b, String message) {
         try {
+
             System.out.println("Sending register request...");
             buffer.writeObject(message);
             buffer.flush();
@@ -32,20 +38,27 @@ public class Consumer extends Node {
         }
     }
 
+    public boolean checkHashtagExists(String hashtag){
+        List <String> hashtags = new ArrayList<>();
+        for (int i=0;i<hashtags.size();i++){
+            if (hashtags.contains(hashtag))
+                return true;
+        }
+        return false;
+    }
+
+
+
 
     public static class Handler extends Thread {
 
-        Socket so;
 
-        public Handler(Socket so) {
-            this.so = so;
+
+        public Handler() {
         }
 
-        public void run() {
-
-
+        public void run(){
         }
-
 
         //public void disconnect (Broker,String)
 

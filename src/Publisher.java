@@ -69,13 +69,23 @@ public class Publisher extends Node {
                 JSONObject request = new JSONObject(responseString);
                 String action = request.getString("action");
                 if (action.equalsIgnoreCase("GET_VIDEO")){
-                    String typeOfSearch = request.getString("type");
+                    String hashtag = request.getString("Hashtag");
+                    String channelname = request.getString("Channelname");
 
-                    //ArrayList<VideoFile> = getVideos(typeOfSearch);
+                    VideoFile video = getVideoByHashtag(hashtag);
+
+                    if (video == null){
+                        System.out.println("No video with that hashtag");
+                        return;
+                    }
                 }
             }catch (Exception e){
                 e.printStackTrace();
             }
+        }
+
+        public VideoFile getVideoByHashtag(String Hashtag){
+            return new VideoFile();
         }
 
     //public Broker hashTopic(String hashTopic)
