@@ -7,5 +7,13 @@ public class ChannelName {
 
     HashMap <String,ArrayList<Value>> userVideoFilesMap = new HashMap<>();
 
+    public ChannelName(String name){
+        channelName = name;
+    }
+
+    public void setChannelName(String name){
+        channelName = name;
+    }
+
 
 }

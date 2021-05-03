@@ -11,7 +11,12 @@ public class Publisher extends Node {
     public ArrayList <String> hashtags = new ArrayList<>();
     ObjectOutputStream oos;
     ObjectInputStream ois;
+    String username,hash;
 
+    public Publisher(ChannelName username,String hash){
+        channelName = username;
+        this.hash = hash;
+    }
 
 
     public static void main(String[] args) throws Exception{
