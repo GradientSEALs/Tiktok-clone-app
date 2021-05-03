@@ -1,9 +1,38 @@
-import java.util.ArrayList;
+import java.io.ObjectInputStream;
+import java.util.*;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.io.ObjectOutputStream;
 
 public class Publisher extends Node {
 
     private ChannelName channelName;
-    public java.util.ArrayList hashtags = new java.util.ArrayList();
+    public ArrayList <String> hashtags = new ArrayList<>();
+    ObjectOutputStream oos;
+    ObjectInputStream ois;
+
+
+
+    public static void main(String[] args) throws Exception{
+        int port, noPublisher;
+        try {
+            port = Integer.parseInt(args[0]);
+            noPublisher = Integer.parseInt(args[1]);
+        } catch (NumberFormatException | IndexOutOfBoundsException e) {
+            System.err.println("Args Input error");
+            return;
+        }
+
+        Publisher publisher = new Publisher();
+
+        ServerSocket s = new ServerSocket(port);
+        while(true){
+            Socket conn = s.accept();
+            System.out.println("A new broker was connected");
+            Handler handler = new Handler(conn, publisher);
+            handler.start();
+        }
+    }
 
     public void addHashtag(String hashtag){
         if (!hashtags.contains(hashtag))
@@ -18,33 +47,18 @@ public class Publisher extends Node {
         System.out.println("hashtag wasn't removed.");
     }
 
-    public void getBrokerList(){
-        for (int i=0;i<hashtags.size();i++)
-            System.out.println(hashtags.get(i));
-    }
 
-    @Override
-    public ArrayList<Broker> getBrokers() {
-        for (int i=0;i<brokers.size();i++)
-            System.out.println(brokers.get(i));
-        return null;
-    }
+    public static class Handler extends Thread{
 
-    @Override
-    public void connect() {
-        System.out.println("Connection");
+        Socket conn;
+        Publisher pu;
 
-    }
+        public Handler(Socket conn, Publisher pu){
+            this.conn = conn;
+            this.pu = pu;
+        }
 
-    @Override
-    public void disconnect() {
-        System.out.println("Disconnect");
 
-    }
-
-    @Override
-    public void updateNodes() {
-        System.out.println("UpdateNodes");
 
     }
 
@@ -56,7 +70,7 @@ public class Publisher extends Node {
 
     //public void notifyBrokersForHashtags(String)
 
-   // public ArrayList<Value> generateChunks (String)
+    // public ArrayList<Value> generateChunks (String)
 
 
 

@@ -5,6 +5,7 @@ import java.net.Socket;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.function.Consumer;
 
 @SuppressWarnings("all")
 
@@ -27,8 +28,9 @@ public class Broker extends Node {
                 try {
                     //Client connection
                     connection = providerSocket.accept();
-                    //Thread handler = new Handler(connection);
-                    //handler.start();
+                    Thread handler = new Handler(connection);
+                    handler.start();
+                    System.out.println("A new client was connected");
 
                 } catch (Exception e) {
                     System.err.println("IOException");
@@ -47,11 +49,23 @@ public class Broker extends Node {
         PrintWriter pr;
         InputStream in;
         OutputStream out;
-        Handler(Socket so){
+        Socket consumer;
+        PublisherHandler ph;
+        ConsumerHandler ch;
+
+        public Handler(Socket so){
+                consumer = so;
+                ch = new ConsumerHandler(this);
+                ph = new PublisherHandler(this);
+                ch.start();
+                ph.start();
             try{
+                ch.join();
+                ph.join();
                 bf = new BufferedReader(new InputStreamReader(so.getInputStream()));
                 dos = new DataOutputStream(so.getOutputStream());
                 pr= new PrintWriter(so.getOutputStream(),true);
+
             }catch (Exception e){
                 e.printStackTrace();
             }
@@ -115,5 +129,31 @@ public class Broker extends Node {
         return hashtext;
     }
 
+    public static class ConsumerHandler extends Thread{
+        Handler parent;
 
+        public ConsumerHandler(Handler parent){
+            this.parent = parent;
+
+        }
+        @Override
+        public void run(){
+
+        }
+    }
+
+    public static class PublisherHandler extends Thread{
+        Handler parent;
+
+        public PublisherHandler(Handler parent){
+            this.parent = parent;
+
+        }
+        @Override
+        public void run(){
+
+        }
+    }
 }
+
+
