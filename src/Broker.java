@@ -1,104 +1,96 @@
-import netscape.javascript.JSObject;
-import org.json.JSONObject;
-
 import java.io.*;
 import java.math.BigInteger;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Random;
-import java.util.function.Consumer;
+
 
 @SuppressWarnings("all")
-
 public class Broker extends Node {
 
-    ArrayList<Consumer> registeredConsumers = new ArrayList<>();
-    ArrayList<Publisher> registeredPublishers = new ArrayList<>();
-    ArrayList<String> hashtags = new ArrayList<>();
-    static int port;
-    static int ipaddress;
-    ObjectOutputStream oos = null;
+    InetAddress ipaddress;
 
+    public Broker(){}
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws UnknownHostException {
         new Broker().run();
-
     }
 
-    public int getPort(){
-        return port;
-    }
-
-    public ArrayList<String> getHashtags(){
-        return hashtags;
-    }
-
-    public void run(){
-        ServerSocket providerSocket;
-        Socket connection = null;
-
+    public void run() throws UnknownHostException {
         Random r = new Random();
-        port = r.nextInt(8000-3000) + 3000;
-
-
+        int port = r.nextInt(8000-4000) + 4000;
+        ipaddress = InetAddress.getLocalHost();
+        ServerSocket serverSocket = null;
+        Node n = new Node();
         try {
-            providerSocket = new ServerSocket(port, 10);
-            System.out.println("The server is open at port: " + port);
-            System.out.println("Broker created.Waiting for connection...");
-            Node.brokers.add(this); //adds himself and the hashtags on the broker list
-
-            //nonit
+            serverSocket = new ServerSocket(port);
+            n.brokers.add(this);
             while (true) {
-                try {
-                    //Client connection
-                    connection = providerSocket.accept();
-                    Thread handler = new Handler(connection);
-                    handler.start();
-                    System.out.println("A new client was connected");
-
-
-
-
-                } catch (Exception e) {
-                    System.err.println("IOException");
-                }
-
+                Socket socket = serverSocket.accept();
+                System.out.println("New client has connected");
+                System.out.println("Connection received from " + socket.getInetAddress().getHostName() + " : " + socket.getPort());
+                Handler handler = new Handler(socket);
+                handler.start();
             }
+
+
+
         } catch (IOException e) {
-            System.err.println("IOException");
+            e.printStackTrace();
         }
     }
 
-    public static class Handler extends Thread{
-        volatile Socket consumerSocket;
-        volatile Socket publisherSocket;
-        PublisherHandler ph;
-        ConsumerHandler ch;
-        BufferedReader bf;
-        DataOutputStream dos;
-        PrintWriter pr;
-        InputStream in;
-        OutputStream out;
+    public InetAddress getBrokerIP(){
+        return ipaddress;
+    }
 
 
-        public Handler(Socket so){
-                //consumer = so;
-                ch = new ConsumerHandler(this);
-                ph = new PublisherHandler(this);
-                ch.start();
-                ph.start();
+    public static class Handler extends Thread {
+        private Socket conn;
+        public ObjectOutputStream oos;
+        public ObjectInputStream ois;
+
+        public Handler(Socket conn) throws IOException {
+            this.conn = conn;
+            oos = new ObjectOutputStream(conn.getOutputStream());
+            ois = new ObjectInputStream(conn.getInputStream());
+        }
+
+        public void run(){
+
             try{
-                ch.join();
-                ph.join();
-                bf = new BufferedReader(new InputStreamReader(so.getInputStream()));
-                dos = new DataOutputStream(so.getOutputStream());
-                pr= new PrintWriter(so.getOutputStream(),true);
+                int choice = (int) ois.readObject(); //we take the choice
 
-            }catch (Exception e){
+                switch (choice) {
+                    case 1:
+                        String channelName = ois.readUTF();
+                        if(registeredPublishers.contains(channelName)){
+                            System.out.println("Channel already exists");
+                            oos.writeByte(-1);
+                        }
+                        else{oos.writeByte(1);}
+                        oos.flush();
+                        break;
+
+                }
+            } catch (ClassNotFoundException | IOException e) {
                 e.printStackTrace();
+            }
+
+            finally {
+                try {
+                    ois.close();
+                    oos.close();
+                    conn.close();
+                    //  System.exit(1);
+                } catch (IOException ioException) {
+                    ioException.printStackTrace();
+                }
             }
         }
     }
@@ -122,71 +114,7 @@ public class Broker extends Node {
         return hashtext;
     }
 
-    public static class ConsumerHandler extends Thread {
-        Handler parent;
 
-        public ConsumerHandler(Handler parent){
-            this.parent = parent;
-
-        }
-        @Override
-        public void run(){
-
-        }
-    }
-
-    public static class PublisherHandler extends Thread{
-        Handler parent;
-
-        public PublisherHandler(Handler parent){
-            this.parent = parent;
-
-        }
-        @Override
-        public void run(){
-            return;
-        }
-    }
-    public Consumer acceptConsumer(){
-        try {
-            ObjectOutputStream outputStream;
-            String ipAddress = super.getIpAddress();
-            int port = super.getPort();
-            boolean exists = registeredConsumers.contains(ipAddress);
-            if (exists){
-                oos.writeByte(-1);
-                oos.flush();
-                System.out.println("This user already exists");
-            }
-            else{
-                //registeredConsumers.add(ipAddress);
-                oos.writeByte(1);
-                oos.flush();
-                System.out.println("A new user just registered with ip " + ipAddress);
-                //System.out.println(registeredPeers.get(username).toString());
-
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-
-
-    //public void calculateKeys()
-
-    //public Publisher acceptConnection()
-
-    //public Consumer acceptConsumer()
-
-    //public void notifyPublisher(String s)
-
-    //public void notifyBrokersOnChanges()
-
-    //public void pull (String s)
-
-    //public String finalConsumer()
 }
 
 

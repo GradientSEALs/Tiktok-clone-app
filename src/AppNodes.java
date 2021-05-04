@@ -8,13 +8,14 @@ import java.util.concurrent.ConcurrentHashMap;
 @SuppressWarnings("all")
 
 
-public class AppNodes {
+public class AppNodes extends Node {
 
     private ObjectOutputStream oos;
     private ObjectInputStream ois;
     ServerSocket AppServer;
-    private Socket trackerConn = null;
-    private String username,password;
+    private Socket brokerSocket = null;
+    boolean FirstContact = false;
+    public String name;
 
     public  void main(String args[]) throws IOException {
 
@@ -28,91 +29,99 @@ public class AppNodes {
         Random r = new Random();
         int port = r.nextInt(8000-3000) + 3000;
         boolean whileFlag = true;
-        trackerConn = new Socket("localhost",1441); //Ypotheto oti tha yparxei enas broker pou tha einai me gnosto port eksarxis kai tha kanei handle username passwords kai tha dinei ta ips ton allwn broker
+         //Ypotheto oti tha yparxei enas broker pou tha einai me gnosto port eksarxis kai tha kanei handle username passwords kai tha dinei ta ips ton allwn broker
 
         try {
 
-            oos = new ObjectOutputStream(trackerConn.getOutputStream()); //here we have to think of a method to find one random broker
-            ois = new ObjectInputStream(trackerConn.getInputStream());
+
 
             AppServer = new ServerSocket(port);
+            Node n = new Node();
+            ArrayList<Broker> brokers= new ArrayList<>();
 
             while(whileFlag){
-            if(loginFlag=false) {
-                System.out.println("*********");
-                System.out.println("Welcome to Tik Tok");
-                System.out.println("Options");
-                System.out.println("1. Register through Hashtags");
-                System.out.println("2. Get Informed about Hashtags");
-                System.out.println("3. Publish A Video");
-                System.out.println("*********");
-            }
-            else {
-                System.out.println("*********");
-                System.out.println("Welcome to Tik Tok");
-                System.out.println("4. Find A Video ");
-                System.out.println("*********");
-            }
 
-            System.out.println("Please pick the service you want");
-            int answer = Integer.parseInt(skr.nextLine());
-            oos.writeObject(answer);
-            oos.flush();
-            Message credentials;
-            ChannelName cn = null;
-            switch (answer) {
-                case 1: //register
-                    System.out.println("Enter username");
-                    this.setUsername(skr.nextLine());
-                    System.out.println("Enter password");
-                    this.setPassword(skr.nextLine());
-                    credentials = new Message(username, password);
-                    this.register(credentials);
-                    //byte reply = 0;
-                    byte reply = ois.readByte();
+                brokers = n.getBrokers(); //get broker information
 
-                    if (reply == -1) {
-                        System.out.println("There was an error");
-                    } else {
-                        System.out.println("You are Registered");
-                        cn = new ChannelName(username);
-                    }
-                    break;
+                if(loginFlag=false) {
+                    System.out.println("*********");
+                    System.out.println("Welcome to Tik Tok");
+                    System.out.println("Options");
+                    System.out.println("1. Register");
+                    System.out.println("*********");
+                }
+                else {
+                    System.out.println("*********");
+                    System.out.println("Welcome to Tik Tok");
+                    System.out.println("2. Publish A Video ");
+                    System.out.println("3. Find A Video ");
+                    System.out.println("Please pick the service you want");
+                    System.out.println("*********");
+                }
 
-                case 2: //login
-                    System.out.println("Enter username");
-                    this.setUsername(skr.nextLine());
-                    System.out.println("Enter password");
-                    this.setPassword(skr.nextLine());
-                    credentials = new Message(username, password);
-                    this.login(credentials);
-                    //byte reply2 = -1;
-                    byte reply2 = ois.readByte();
-                    //when a user tries to login w/out being registered, there is a message only in handler
-                    if (reply2 == -1) {
-                        System.out.println("There was an error");
-                    } else {
-                        System.out.println("You are Logged in");
-                        loginFlag = true;
-                    }
-                    break;
+                int answer = Integer.parseInt(skr.nextLine());
 
-                case 3: //publish video
-                    System.out.println("Please choose the name of your channel");
-                    String name = skr.nextLine();
-                    // perhaps we can also send the ip and port for the appropriate broker
-                    Publisher pr = new Publisher(name,port);
-                    pr.run();
-                    //pr.start();
+                ChannelName cn = null;
+                switch (answer) {
+                    case 1: //register
 
-                case 4:
+                        int randomchoice = r.nextInt(brokers.size()-1);
+
+                        Broker b = brokers.get(randomchoice);
+                        int tempport = b.getPort();
+                        InetAddress brokerip = b.getBrokerIP();
+
+                        brokerSocket = new Socket(brokerip,tempport);
+                        oos = new ObjectOutputStream(brokerSocket.getOutputStream()); //here we have to think of a method to find one random broker
+                        ois = new ObjectInputStream(brokerSocket.getInputStream());
+
+                        oos.writeObject(answer); //sending choice to a random broker
+                        oos.flush();
 
 
-                    //find a video
-                    //antistoixo me to pano
-                    //Consumer cr = new Consumer();
-                    //cr.run();
+                        System.out.println("Enter Channel Name");
+                        name = skr.nextLine();
+                        try{
+                            System.out.println("Sending register request...");
+                            oos.writeObject(name);
+                            oos.flush();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        //byte reply = 0;
+                        byte reply = ois.readByte();
 
+                        if (reply == -1) {
+                            System.out.println("There was an error");
+                        } else {
+                            System.out.println("You are Registered");
+                            cn = new ChannelName(name);
+                            registeredPublishers.add(this);
+                        }
+
+                        oos.close();
+                        ois.close();
+                        brokerSocket.close();
+                        break;
+
+
+                    case 2: //publish video
+                        System.out.println("Please choose the name of your channel");
+                        name = skr.nextLine();
+                        // perhaps we can also send the ip and port for the appropriate broker
+                        Publisher pr = new Publisher(name,port);
+                        pr.run();
+                        //pr.start();
+                        break;
+
+                    case 3:
+
+
+                        //find a video
+                        //antistoixo me to pano
+                        //Consumer cr = new Consumer();
+                        //cr.run();
+                        break;
             }
             }
         } catch (IOException e) {
@@ -122,15 +131,6 @@ public class AppNodes {
 
     }
 
-    public void register(Message message){
-        try{
-            System.out.println("Sending register request...");
-            oos.writeObject(message);
-            oos.flush();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 
     public void login(Message message){
         try {
@@ -142,13 +142,11 @@ public class AppNodes {
         }
     }
 
-    public void setUsername(String username){
-        this.username = username;
-    }
 
-    public void setPassword(String password){
-        this.password = password;
-    }
+    public String getChannelName(){return name;}
+
+
+
 
     public static class Handler extends Thread{
 
