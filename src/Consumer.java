@@ -11,9 +11,12 @@ public class Consumer extends Node {
     private ObjectOutputStream buffer;
 
 
-public Consumer(String ipAddress,int port){
-    super(ipAddress,port);
+public Consumer(int port) {
+    this.port = port;
 }
+
+
+
     public static void main(String[] args) throws Exception{
 
     Handler handler = new Handler();

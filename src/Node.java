@@ -34,7 +34,7 @@ public class Node {
         return brokers;
     };
 
-    public Socket connect(){
+    /*public Socket connect(){
         while (true){
             try {
                 InetAddress host = InetAddress.getByName(ipAddress);
@@ -55,5 +55,5 @@ public class Node {
         }
     }
 
-    public void updateNodes(){};
+    public void updateNodes(){};*/
 }

@@ -42,15 +42,15 @@ public class AppNodes {
                 System.out.println("*********");
                 System.out.println("Welcome to Tik Tok");
                 System.out.println("Options");
-                System.out.println("1. Register (1)");
-                System.out.println("2. Login (2)");
+                System.out.println("1. Register through Hashtags");
+                System.out.println("2. Get Informed about Hashtags");
+                System.out.println("3. Publish A Video");
                 System.out.println("*********");
             }
             else {
                 System.out.println("*********");
                 System.out.println("Welcome to Tik Tok");
-                System.out.println(" Publish A Video (3)");
-                System.out.println(" Find A Video (4)");
+                System.out.println("4. Find A Video ");
                 System.out.println("*********");
             }
 
@@ -98,15 +98,20 @@ public class AppNodes {
                     break;
 
                 case 3: //publish video
-                    System.out.println("Please choose hashtag for the video");
-                    String hash = skr.nextLine();
+                    System.out.println("Please choose the name of your channel");
+                    String name = skr.nextLine();
                     // perhaps we can also send the ip and port for the appropriate broker
-                    //Publisher pr = new Publisher(cn, hash);
+                    Publisher pr = new Publisher(name,port);
+                    pr.run();
                     //pr.start();
 
-                case 4: //find a video
+                case 4:
+
+
+                    //find a video
                     //antistoixo me to pano
                     //Consumer cr = new Consumer();
+                    //cr.run();
 
             }
             }

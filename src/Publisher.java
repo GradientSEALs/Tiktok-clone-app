@@ -16,11 +16,12 @@ public class Publisher extends Thread {
     private ChannelName channelName;
     volatile ArrayList<VideoFile> videoFiles = new ArrayList<>();
     private static int port;
-    Socket broker = new Socket();
+    Socket broker = null;
     BufferedReader br;
     PrintWriter pr;
-    OutputStream out;
+    ObjectOutputStream out;
     ObjectInputStream in;
+    String name;
 
     public Publisher(ChannelName username, String folder, Socket broker){
         this.folder = folder;
@@ -28,8 +29,10 @@ public class Publisher extends Thread {
         this.broker = broker;
     }
 
-    public Publisher() {
-        channelName = new ChannelName("Eko");
+    public Publisher(String name,int port) {
+        this.name = name;
+        this.port = port;
+        channelName = new ChannelName(name);
     }
 
 
@@ -37,25 +40,39 @@ public class Publisher extends Thread {
     @Override
     public void run() {
         try {
+            Node n = new Node();
             loadAvailableFiles(folder, channelName.getChannelName());
             ServerSocket s = new ServerSocket(port);
             Scanner skr = new Scanner(System.in);
-            while(true){
-                //printfiles
-                String fileName = skr.nextLine();
-                String hashtag = skr.nextLine();
-                String [] hashtags = hashtag.split(",");
-                VideoFile video = null;
-                for (VideoFile v : videoFiles){
-                    if (v.videoName.equals(fileName)) {
-                        video = v;
-                        break;
-                    }
-                }
-                video.addHastags(hashtags);
-                uploadVideo(video,broker);
+            System.out.println("Please give file name");
+            String fileName = skr.nextLine();
+            System.out.println("Please give hashtags(separate with a comma)");
+            String hashtag = skr.nextLine();
+            String [] hashtags = hashtag.split(",");
+            //connection with appropriate broker
+            int brokerPort;
+            ArrayList<Broker> brokers = new ArrayList<Broker>();
+            brokers = n.getBrokers(); //loads the list of brokers
+            boolean exists = false;
+            for (Broker b: brokers){ //finds the broker with the appropriate hashtag
+               if(b.getHashtags().contains(hashtag)){
+                   broker = new Socket("localhost",b.port);
+                   exists = true;
+               }
+            }
+            if (!exists){
+                //we have to create new hashtag to brokers
             }
 
+            VideoFile video = null;
+            for (VideoFile v : videoFiles){
+                if (v.videoName.equals(fileName)) {
+                    video = v;
+                    break;
+                }
+            }
+            video.addHastags(hashtags);
+            uploadVideo(video,broker);
             //notifyBrokers
         } catch (IOException e) {
             e.printStackTrace();
@@ -65,7 +82,7 @@ public class Publisher extends Thread {
     public void uploadVideo(VideoFile videoFile,Socket broker) throws IOException {
         byte[] videoData = Util.loadVideoFromDiskToRam(videoFile);
         List<byte[]> chunckedVideo = Util.chunkifyFile(videoData);
-        out = broker.getOutputStream();
+        out = (ObjectOutputStream) broker.getOutputStream();
         for (byte[] data: chunckedVideo){
             out.write(data);
             out.flush();
