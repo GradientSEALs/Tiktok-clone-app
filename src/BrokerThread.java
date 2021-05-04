@@ -1,52 +1,20 @@
 import java.io.*;
 import java.math.BigInteger;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.function.Consumer;
 
-@SuppressWarnings("all")
-
-public class Broker extends Node {
-
-    ArrayList<Consumer> registeredConsumers = new ArrayList<>();
-    ArrayList<Publisher> registeredPublishers = new ArrayList<>();
-    ArrayList<String> hashtags = new ArrayList<>();
+public class BrokerThread {
 
 
-    public static void main(String[] args) throws IOException {
-        ServerSocket providerSocket;
-        Socket connection = null;
 
-        try {
-            brokers.add(this);
-            providerSocket = new ServerSocket(1441, 10);
-            System.out.println("The server is open at port: " + 1441);
-            System.out.println("Server socket created.Waiting for connection...");
-
-            //nonit
-            while (true) {
-                try {
-                    //Client connection
-                    connection = providerSocket.accept();
-                    Thread handler = new Handler(connection);
-                    handler.start();
-                    System.out.println("A new client was connected");
-
-                } catch (Exception e) {
-                    System.err.println("IOException");
-                }
-
-            }
-        } catch (IOException e) {
-            System.err.println("IOException");
-        }
-
-    }
-
+    volatile ArrayList<Consumer> registeredConsumers = new ArrayList<>();
+    volatile ArrayList<Publisher> registeredPublishers = new ArrayList<>();
+    volatile ArrayList<String> hashtags = new ArrayList<>();
     public static class Handler extends Thread{
+
         volatile Socket consumerSocket;
         volatile Socket publisherSocket;
         PublisherHandler ph;
@@ -59,11 +27,11 @@ public class Broker extends Node {
 
 
         public Handler(Socket so){
-                //consumer = so;
-                ch = new ConsumerHandler(this);
-                ph = new PublisherHandler(this);
-                ch.start();
-                ph.start();
+            //consumer = so;
+            ch = new ConsumerHandler(this);
+            ph = new PublisherHandler(this);
+            ch.start();
+            ph.start();
             try{
                 ch.join();
                 ph.join();
@@ -121,19 +89,18 @@ public class Broker extends Node {
             return;
         }
     }
-    public Consumer acceptConsumer(){
-        try {
-            ObjectOutputStream outputStream;
-            String ipAddress = super.getIpAddress();
-            int port = super.getPort();
-            boolean exists = registeredConsumers.contains(ipAddress);
+    public void acceptConsumer(){
+        String ipAddress = super.getIpAddress();
+        int port = super.getPort();
+        boolean exists = registeredConsumers.contains(ipAddress);
+        try{
             if (exists){
                 oos.writeByte(-1);
                 oos.flush();
                 System.out.println("This user already exists");
             }
             else{
-                registeredConsumers.add(ipAddress);
+                //registeredC
                 oos.writeByte(1);
                 oos.flush();
                 System.out.println("A new user just registered with ip " + ipAddress);
@@ -144,6 +111,7 @@ public class Broker extends Node {
             e.printStackTrace();
         }
     }
+
 
 
     //public void calculateKeys()
@@ -160,5 +128,3 @@ public class Broker extends Node {
 
     //public String finalConsumer()
 }
-
-

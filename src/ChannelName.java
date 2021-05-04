@@ -5,7 +5,7 @@ public class ChannelName {
 
     public ArrayList <String> hashtagsPublished = new ArrayList<>();
 
-    HashMap <String,ArrayList<Value>> userVideoFilesMap = new HashMap<>();
+    HashMap <String,ArrayList<VideoFile>> userVideoFilesMap = new HashMap<>();
 
     public ChannelName(String name){
         channelName = name;

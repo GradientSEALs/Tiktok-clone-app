@@ -7,7 +7,7 @@ import java.net.InetAddress;
 
 public class Node {
 
-    public ArrayList<Broker> brokers = new ArrayList<>();
+    public static ArrayList<Broker> brokers = new ArrayList<>();
     Socket socket;
     protected String ipAddress;
     protected int port;

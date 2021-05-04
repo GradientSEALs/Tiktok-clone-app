@@ -19,9 +19,9 @@ public class Util {
      * @param videoFile pojo
      * @return the mp4 binary data for that video
      */
-    public static byte[] loadVideoFromDiskToRam(String path, String videoFile){
+    public static byte[] loadVideoFromDiskToRam(VideoFile videoFile){
         try{
-            File file = new File(path+videoFile);
+            File file = new File(videoFile.path+"/"+videoFile.videoName);
             FileInputStream fis = new FileInputStream(file);
             byte[] fileData = new byte[(int)file.length()];
             fis.read(fileData);
