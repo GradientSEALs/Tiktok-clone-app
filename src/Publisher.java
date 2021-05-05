@@ -22,6 +22,8 @@ public class Publisher extends Thread {
     ObjectOutputStream out;
     ObjectInputStream in;
     String name;
+    ObjectOutputStream oos;
+    ObjectInputStream ois;
 
     public Publisher(ChannelName username, String folder, Socket broker){
         this.folder = folder;
@@ -49,22 +51,51 @@ public class Publisher extends Thread {
             System.out.println("Please give hashtags(separate with a comma)");
             String hashtag = skr.nextLine();
             String [] hashtags = hashtag.split(",");
+            String hash = hashtags[0];
+            int hashid = Util.getModMd5(hash);
             //connection with appropriate broker
             int brokerPort;
             ArrayList<Broker> brokers = new ArrayList<Broker>();
             brokers = n.getBrokers(); //loads the list of brokers
             boolean exists = false;
-            for (Broker b: brokers){ //finds the broker with the appropriate hashtag
-               if(b.getHashtags().contains(hashtag)){
-                   broker = new Socket("localhost",b.port);
-                   exists = true;
-               }
+            for (Broker b: brokers){ //finds the broker that already has the hashtag
+                    if (b.getHashtags().contains(hashtag)) {
+                        broker = new Socket(b.getBrokerIP(), b.getPort());
+                        exists = true;
+                }
             }
             if (!exists){
+                for (Broker b: brokers) {
+                    if (hashid <= b.getHashID()) { //checks if hashid smaller than broker hashid
+                        broker = new Socket(b.getBrokerIP(), b.getPort());
+                        break;
+                    }
+
+
+                }
                 //we have to create new hashtag to brokers
             }
+            oos = new ObjectOutputStream(broker.getOutputStream());
+            ois = new ObjectInputStream(broker.getInputStream());
 
-            VideoFile video = null;
+            oos.writeObject(2); //sending choice to the correct broker
+            oos.flush();
+
+            if(!exists){
+                oos.writeByte(1);
+                oos.flush();
+                oos.writeObject(hash);
+                System.out.println("database updated");
+
+            }
+
+
+
+
+
+
+
+            /*VideoFile video = null;
             for (VideoFile v : videoFiles){
                 if (v.videoName.equals(fileName)) {
                     video = v;
@@ -72,7 +103,7 @@ public class Publisher extends Thread {
                 }
             }
             video.addHastags(hashtags);
-            uploadVideo(video,broker);
+            uploadVideo(video,broker);*/
             //notifyBrokers
         } catch (IOException e) {
             e.printStackTrace();

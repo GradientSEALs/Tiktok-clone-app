@@ -13,30 +13,53 @@ import java.util.Random;
 @SuppressWarnings("all")
 public class Broker extends Node {
 
+    public ArrayList<String> brokerhashtag = new ArrayList<>();
     InetAddress ipaddress;
+    int hashid;
+    int port;
+    public static ArrayList<AppNodes> registeredAppNodes = new ArrayList<>();
 
     public Broker(){}
 
-    public static void main(String[] args) throws UnknownHostException {
-        new Broker().run();
+    @Override
+    public String toString() {
+        return "Broker{" +
+                "brokerhashtag=" + brokerhashtag +
+                ", ipaddress=" + ipaddress +
+                ", hashid=" + hashid +
+                ", port=" + port +
+                '}';
+    }
+
+    public static void main(String[] args) {
+        try {
+            new Broker().run();
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
     }
 
     public void run() throws UnknownHostException {
         Random r = new Random();
-        int port = r.nextInt(8000-4000) + 4000;
+        port = r.nextInt(8000-4000) + 4000;
         ipaddress = InetAddress.getLocalHost();
+        String input = (ipaddress.toString() + ":" +port);
+        hashid = Util.getModMd5(input); //create hashid
         ServerSocket serverSocket = null;
-        Node n = new Node();
+        Handler handler;
         try {
             serverSocket = new ServerSocket(port);
-            n.brokers.add(this);
+            System.out.println("Port is now open");
+            super.brokers.add(this);
+            System.out.println(brokers);
             while (true) {
                 Socket socket = serverSocket.accept();
                 System.out.println("New client has connected");
                 System.out.println("Connection received from " + socket.getInetAddress().getHostName() + " : " + socket.getPort());
-                Handler handler = new Handler(socket);
+                handler = new Handler(socket);
                 handler.start();
             }
+            //handler.join();
 
 
 
@@ -48,9 +71,11 @@ public class Broker extends Node {
     public InetAddress getBrokerIP(){
         return ipaddress;
     }
+    public int getHashID(){return hashid;}
+    public ArrayList<AppNodes> getRegisteredAppNodes(){ return registeredAppNodes; }
+    public ArrayList<String> getBrokerhashtag(){return brokerhashtag;}
 
-
-    public static class Handler extends Thread {
+    private class Handler extends Thread {
         private Socket conn;
         public ObjectOutputStream oos;
         public ObjectInputStream ois;
@@ -63,24 +88,45 @@ public class Broker extends Node {
 
         public void run(){
 
-            try{
-                int choice = (int) ois.readObject(); //we take the choice
+            try {
 
-                switch (choice) {
-                    case 1:
-                        String channelName = ois.readUTF();
-                        if(registeredPublishers.contains(channelName)){
-                            System.out.println("Channel already exists");
-                            oos.writeByte(-1);
-                        }
-                        else{oos.writeByte(1);}
-                        oos.flush();
-                        break;
+                while (true) {
+                    int choice = (int) ois.readObject(); //we take the choice
 
+                    switch (choice) {
+                        case 1: //register
+                            String channelName = ois.readUTF();
+                            if (registeredAppNodes.contains(channelName)) {
+                                System.out.println("Channel already exists");
+                                oos.writeByte(-1);
+                                oos.flush();
+                            } else {
+                                oos.writeByte(1);
+                                oos.flush();
+                                AppNodes appn = (AppNodes) ois.readObject();
+                                registeredAppNodes.add(appn);
+                            }
+
+
+                            break;
+                        case 2: //publish a video
+                            byte t = ois.readByte();
+                            if(t == 1){
+                                String hashtag =(String)ois.readObject();
+                                Generalhashtags.add(hashtag);
+                                brokerhashtag.add(hashtag);
+                                System.out.println("database updated");
+
+                            }
+
+                            break;
+                    }
                 }
-            } catch (ClassNotFoundException | IOException e) {
-                e.printStackTrace();
-            }
+
+                } catch(ClassNotFoundException | IOException e){
+                    e.printStackTrace();
+                }
+
 
             finally {
                 try {
@@ -93,7 +139,8 @@ public class Broker extends Node {
                 }
             }
         }
-    }
+            }
+
 
     public String calculateHash(String input) throws NoSuchAlgorithmException {
         MessageDigest md = MessageDigest.getInstance("SHA-1");

@@ -17,7 +17,7 @@ public Consumer(int port) {
 
 
 
-    public static void main(String[] args) throws Exception{
+    public static void main(String[] args){
 
     Handler handler = new Handler();
 

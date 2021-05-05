@@ -17,9 +17,14 @@ public class AppNodes extends Node {
     boolean FirstContact = false;
     public String name;
 
-    public  void main(String args[]) throws IOException {
 
-            startService();
+    public static void main(String args[]) {
+
+        try {
+            new AppNodes().startService();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void startService() throws IOException {
@@ -27,23 +32,18 @@ public class AppNodes extends Node {
         boolean loginFlag = false;
         Scanner skr = new Scanner(System.in);
         Random r = new Random();
-        int port = r.nextInt(8000-3000) + 3000;
+        int port = r.nextInt(10000-8001) + 8001;
         boolean whileFlag = true;
          //Ypotheto oti tha yparxei enas broker pou tha einai me gnosto port eksarxis kai tha kanei handle username passwords kai tha dinei ta ips ton allwn broker
 
         try {
-
-
-
             AppServer = new ServerSocket(port);
-            Node n = new Node();
-            ArrayList<Broker> brokers= new ArrayList<>();
 
             while(whileFlag){
 
-                brokers = n.getBrokers(); //get broker information
 
-                if(loginFlag=false) {
+
+                if(loginFlag==false) {
                     System.out.println("*********");
                     System.out.println("Welcome to Tik Tok");
                     System.out.println("Options");
@@ -53,8 +53,8 @@ public class AppNodes extends Node {
                 else {
                     System.out.println("*********");
                     System.out.println("Welcome to Tik Tok");
-                    System.out.println("2. Publish A Video ");
-                    System.out.println("3. Find A Video ");
+                    System.out.println("2. Publish A Video "); //push function
+                    System.out.println("3. Find A Video "); //pull function
                     System.out.println("Please pick the service you want");
                     System.out.println("*********");
                 }
@@ -62,16 +62,16 @@ public class AppNodes extends Node {
                 int answer = Integer.parseInt(skr.nextLine());
 
                 ChannelName cn = null;
+
                 switch (answer) {
                     case 1: //register
 
-                        int randomchoice = r.nextInt(brokers.size()-1);
+                        //int randomchoice = r.nextInt(brokers.size() -1) + 1;
+                       // Broker b = brokers.get(randomchoice);
+                       // int tempport = b.getPort();
+                        //InetAddress brokerip = b.getBrokerIP();
 
-                        Broker b = brokers.get(randomchoice);
-                        int tempport = b.getPort();
-                        InetAddress brokerip = b.getBrokerIP();
-
-                        brokerSocket = new Socket(brokerip,tempport);
+                       // brokerSocket = new Socket(brokerip,tempport);
                         oos = new ObjectOutputStream(brokerSocket.getOutputStream()); //here we have to think of a method to find one random broker
                         ois = new ObjectInputStream(brokerSocket.getInputStream());
 
@@ -95,8 +95,10 @@ public class AppNodes extends Node {
                             System.out.println("There was an error");
                         } else {
                             System.out.println("You are Registered");
-                            cn = new ChannelName(name);
-                            registeredPublishers.add(this);
+                            loginFlag = true;
+                            oos.writeObject(this);
+                            oos.flush();
+
                         }
 
                         oos.close();
@@ -154,5 +156,3 @@ public class AppNodes extends Node {
     }
 
 }
-
-

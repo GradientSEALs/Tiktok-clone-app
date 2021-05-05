@@ -1,13 +1,14 @@
+import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
 
 public class Node {
 
     public static ArrayList<Broker> brokers = new ArrayList<>();
+
     public static ArrayList<AppNodes> appnodes = new ArrayList<>();
 
-    public static ArrayList<AppNodes> registeredPublishers = new ArrayList<>();
-    public static ArrayList<String> hashtags = new ArrayList<>();
+    public static ArrayList<String> Generalhashtags = new ArrayList<>();
 
     Socket socket;
     protected String ipAddress;
@@ -15,6 +16,10 @@ public class Node {
 
     public Node() {
     }
+
+    public static void main(String[] args) {
+    }
+
 
 
     public Node(String ipAddress, int port) {
@@ -27,8 +32,7 @@ public class Node {
         return port;
     }
 
-    public ArrayList<AppNodes> getRegisteredPublishers(){ return registeredPublishers;
-    }
+
 
     public ArrayList<Broker> getBrokers(){
         return brokers;
@@ -39,7 +43,7 @@ public class Node {
     };
 
     public ArrayList<String> getHashtags(){
-        return hashtags;
+        return Generalhashtags;
     }
 
     /*public Socket connect(){
