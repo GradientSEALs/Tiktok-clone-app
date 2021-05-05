@@ -19,7 +19,8 @@ public class Broker extends Node {
     int port;
     public static ArrayList<AppNodes> registeredAppNodes = new ArrayList<>();
 
-    public Broker(){}
+    public Broker(){
+    }
 
     @Override
     public String toString() {
@@ -43,15 +44,15 @@ public class Broker extends Node {
         Random r = new Random();
         port = r.nextInt(8000-4000) + 4000;
         ipaddress = InetAddress.getLocalHost();
-        String input = (ipaddress.toString() + ":" +port);
+        String input = (ipaddress.toString() + ":" + port);
         hashid = Util.getModMd5(input); //create hashid
+        Node.brokers.add(this);
+        System.out.println(Node.brokers);
         ServerSocket serverSocket = null;
         Handler handler;
         try {
             serverSocket = new ServerSocket(port);
             System.out.println("Port is now open");
-            super.brokers.add(this);
-            System.out.println(brokers);
             while (true) {
                 Socket socket = serverSocket.accept();
                 System.out.println("New client has connected");
@@ -66,6 +67,10 @@ public class Broker extends Node {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public int getPort() {
+        return port;
     }
 
     public InetAddress getBrokerIP(){

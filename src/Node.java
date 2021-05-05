@@ -10,29 +10,9 @@ public class Node {
 
     public static ArrayList<String> Generalhashtags = new ArrayList<>();
 
-    Socket socket;
-    protected String ipAddress;
-    protected int port;
 
     public Node() {
     }
-
-    public static void main(String[] args) {
-    }
-
-
-
-    public Node(String ipAddress, int port) {
-        this.ipAddress = ipAddress;
-        this.port = port;
-    }
-
-
-    public int getPort() {
-        return port;
-    }
-
-
 
     public ArrayList<Broker> getBrokers(){
         return brokers;

@@ -4,7 +4,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.lang.*;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 @SuppressWarnings("all")
 
 
@@ -65,13 +64,13 @@ public class AppNodes extends Node {
 
                 switch (answer) {
                     case 1: //register
+                        ArrayList<Broker> b = getBrokers();
+                        int randomchoice = r.nextInt(b.size() -1) + 1;
+                        Broker br = b.get(randomchoice);
+                        int tempport = br.getPort();
+                        InetAddress brokerip = br.getBrokerIP();
 
-                        //int randomchoice = r.nextInt(brokers.size() -1) + 1;
-                       // Broker b = brokers.get(randomchoice);
-                       // int tempport = b.getPort();
-                        //InetAddress brokerip = b.getBrokerIP();
-
-                       // brokerSocket = new Socket(brokerip,tempport);
+                        brokerSocket = new Socket(brokerip,tempport);
                         oos = new ObjectOutputStream(brokerSocket.getOutputStream()); //here we have to think of a method to find one random broker
                         ois = new ObjectInputStream(brokerSocket.getInputStream());
 
