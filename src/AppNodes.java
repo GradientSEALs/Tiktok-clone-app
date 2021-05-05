@@ -54,6 +54,7 @@ public class AppNodes extends Node {
                     System.out.println("Welcome to Tik Tok");
                     System.out.println("2. Publish A Video "); //push function
                     System.out.println("3. Find A Video "); //pull function
+                    System.out.println("4. Subscribe to a Hashtag or a Channel"); //pull function
                     System.out.println("Please pick the service you want");
                     System.out.println("*********");
                 }
@@ -115,13 +116,17 @@ public class AppNodes extends Node {
                         //pr.start();
                         break;
 
-                    case 3:
+                    case 3: //find video
 
-
+                        Consumer cr = new Consumer(port);
+                        cr.run();
                         //find a video
                         //antistoixo me to pano
                         //Consumer cr = new Consumer();
                         //cr.run();
+                        break;
+
+                    case 4: //declare intention to subscribe to a channel or hashtag
                         break;
             }
             }

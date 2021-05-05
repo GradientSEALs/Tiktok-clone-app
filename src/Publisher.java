@@ -17,10 +17,6 @@ public class Publisher extends Thread {
     volatile ArrayList<VideoFile> videoFiles = new ArrayList<>();
     private static int port;
     Socket broker = null;
-    BufferedReader br;
-    PrintWriter pr;
-    ObjectOutputStream out;
-    ObjectInputStream in;
     String name;
     ObjectOutputStream oos;
     ObjectInputStream ois;
@@ -42,7 +38,6 @@ public class Publisher extends Thread {
     @Override
     public void run() {
         try {
-            Node n = new Node();
             loadAvailableFiles(folder, channelName.getChannelName());
             ServerSocket s = new ServerSocket(port);
             Scanner skr = new Scanner(System.in);
@@ -55,17 +50,15 @@ public class Publisher extends Thread {
             int hashid = Util.getModMd5(hash);
             //connection with appropriate broker
             int brokerPort;
-            ArrayList<Broker> brokers = new ArrayList<Broker>();
-            brokers = n.getBrokers(); //loads the list of brokers
             boolean exists = false;
-            for (Broker b: brokers){ //finds the broker that already has the hashtag
+            for (Broker b: Node.brokers){ //finds the broker that already has the hashtag
                     if (b.getHashtags().contains(hashtag)) {
                         broker = new Socket(b.getBrokerIP(), b.getPort());
                         exists = true;
                 }
             }
             if (!exists){
-                for (Broker b: brokers) {
+                for (Broker b: Node.brokers) {
                     if (hashid <= b.getHashID()) { //checks if hashid smaller than broker hashid
                         broker = new Socket(b.getBrokerIP(), b.getPort());
                         break;
@@ -84,10 +77,25 @@ public class Publisher extends Thread {
             if(!exists){
                 oos.writeByte(1);
                 oos.flush();
-                oos.writeObject(hash);
-                System.out.println("database updated");
-
             }
+            else{
+                oos.writeByte(-1);
+                oos.flush();
+            }
+            oos.writeObject(hashtags);
+            oos.flush();
+            oos.writeObject(name); //this is the string name of channel
+            oos.flush();
+            oos.writeObject(fileName);
+            oos.flush();
+            oos.writeObject(this);
+            oos.flush();
+            System.out.println("database updated");
+
+
+
+            //se periptosi pou yparxei endiaferomenos prepei na to stelneis to video se ayton
+
 
 
 
@@ -113,10 +121,10 @@ public class Publisher extends Thread {
     public void uploadVideo(VideoFile videoFile,Socket broker) throws IOException {
         byte[] videoData = Util.loadVideoFromDiskToRam(videoFile);
         List<byte[]> chunckedVideo = Util.chunkifyFile(videoData);
-        out = (ObjectOutputStream) broker.getOutputStream();
+        oos = (ObjectOutputStream) broker.getOutputStream();
         for (byte[] data: chunckedVideo){
-            out.write(data);
-            out.flush();
+            oos.write(data);
+            oos.flush();
         }
     }
 

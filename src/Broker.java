@@ -14,6 +14,9 @@ import java.util.Random;
 public class Broker extends Node {
 
     public ArrayList<String> brokerhashtag = new ArrayList<>();
+    public ArrayList<String> brokerchannelnameslist = new ArrayList<>();
+
+
     InetAddress ipaddress;
     int hashid;
     int port;
@@ -69,6 +72,10 @@ public class Broker extends Node {
         }
     }
 
+    public ArrayList<String> getBrokerchannelnameslist() {
+        return brokerchannelnameslist;
+    }
+
     public int getPort() {
         return port;
     }
@@ -101,7 +108,7 @@ public class Broker extends Node {
                     switch (choice) {
                         case 1: //register
                             String channelName = ois.readUTF();
-                            if (registeredAppNodes.contains(channelName)) {
+                            if (brokerchannelnameslist.contains(channelName)) {
                                 System.out.println("Channel already exists");
                                 oos.writeByte(-1);
                                 oos.flush();
@@ -109,28 +116,71 @@ public class Broker extends Node {
                                 oos.writeByte(1);
                                 oos.flush();
                                 AppNodes appn = (AppNodes) ois.readObject();
-                                registeredAppNodes.add(appn);
+                                registeredAppNodes.add(appn);   //puts appnode in broker list
+                                appnodes.add(appn);         //puts appnode in node list
+                                brokerchannelnameslist.add(channelName);  //puts channel in broker list
+                                channelnameslist.add(channelName);  //puts channel in node list
                             }
 
 
                             break;
                         case 2: //publish a video
                             byte t = ois.readByte();
+                            String[] hashtags =(String[])ois.readObject();
                             if(t == 1){
-                                String hashtag =(String)ois.readObject();
-                                Generalhashtags.add(hashtag);
-                                brokerhashtag.add(hashtag);
-                                System.out.println("database updated");
-
+                                Generalhashtags.add(hashtags[0]); ////puts the hashtag in the node hashtag
+                                brokerhashtag.add(hashtags[0]); //puts the hashtag in the broker hashtag
                             }
 
+                            channelName = ois.readUTF();
+                            String filename = ois.readUTF();
+                            AppNodes appn = (AppNodes) ois.readObject();
+                            ArrayList<String> hashtagss = new ArrayList<>();
+                            for(int i =0;i<=hashtags.length;i++){
+                                hashtagss.add(hashtags[i]);
+;                            }
+                            VideosPublisherConnection.add(new VideoFile(filename,channelName,hashtagss, appn)); //adds all information for the video file
+                            System.out.println("database updated");
                             break;
+
+                        case 3: //find a video or a channel and deliver the video
+
+                            byte action = ois.readByte();
+                            if(action==1){
+                                String hashtag = ois.readUTF();
+                                ArrayList<VideoFile> interestingvideos= new ArrayList<>();
+                                for(VideoFile v:getVideos()){
+                                    if(v.getAssociatedHashtags().contains(hashtag)){
+                                        interestingvideos.add(v);
+                                    }
+
+                                }
+                                oos.writeObject(interestingvideos);
+                                String request = ois.readUTF(); //handles the request and is responsible for sending the video
+
+
+
+
+                            }
+                            else{
+
+                            }
+                            break;
+
+                        case 4: //subscrie customer to a hashtag or channel
+                            break;
+
+
+
+
                     }
                 }
 
                 } catch(ClassNotFoundException | IOException e){
                     e.printStackTrace();
                 }
+
+
 
 
             finally {

@@ -1,6 +1,10 @@
+import org.checkerframework.checker.units.qual.A;
+
 import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 
 public class Node {
 
@@ -8,21 +12,35 @@ public class Node {
 
     public static ArrayList<AppNodes> appnodes = new ArrayList<>();
 
-    public static ArrayList<String> Generalhashtags = new ArrayList<>();
+    public static HashSet<String> Generalhashtags = new HashSet<>();
+
+    public static HashSet<String> channelnameslist = new HashSet<>();
+
+    public static ArrayList<VideoFile> VideosPublisherConnection = new ArrayList<>();
+
 
 
     public Node() {
     }
 
-    public ArrayList<Broker> getBrokers(){
+    public static ArrayList<Broker> getBrokers(){
         return brokers;
     };
 
-    public ArrayList<AppNodes> getAppnodes(){
+    public static ArrayList<AppNodes> getAppnodes(){
         return appnodes;
     };
 
-    public ArrayList<String> getHashtags(){
+
+    public static HashSet<String> getChannelnameslist() {
+        return channelnameslist;
+    }
+
+    public static ArrayList<VideoFile> getVideos() {
+        return VideosPublisherConnection;
+    }
+
+    public static HashSet<String> getHashtags() {
         return Generalhashtags;
     }
 
