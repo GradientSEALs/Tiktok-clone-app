@@ -16,7 +16,7 @@ public class Node {
 
     public static HashSet<String> channelnameslist = new HashSet<>();
 
-    public static ArrayList<VideoFile> VideosPublisherConnection = new ArrayList<>();
+
 
 
 
@@ -36,9 +36,7 @@ public class Node {
         return channelnameslist;
     }
 
-    public static ArrayList<VideoFile> getVideos() {
-        return VideosPublisherConnection;
-    }
+
 
     public static HashSet<String> getHashtags() {
         return Generalhashtags;

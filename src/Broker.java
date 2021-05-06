@@ -8,6 +8,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.Scanner;
 
 
 @SuppressWarnings("all")
@@ -15,12 +16,12 @@ public class Broker extends Node {
 
     public ArrayList<String> brokerhashtag = new ArrayList<>();
     public ArrayList<String> brokerchannelnameslist = new ArrayList<>();
-
+    public ArrayList<VideoFile> VideosPublisherConnection = new ArrayList<>();
 
     InetAddress ipaddress;
     int hashid;
     int port;
-    public static ArrayList<AppNodes> registeredAppNodes = new ArrayList<>();
+    public ArrayList<AppNodes> registeredAppNodes = new ArrayList<>();
 
     public Broker(){
     }
@@ -45,6 +46,7 @@ public class Broker extends Node {
 
     public void run() throws UnknownHostException {
         Random r = new Random();
+
         port = r.nextInt(8000-4000) + 4000;
         ipaddress = InetAddress.getLocalHost();
         String input = (ipaddress.toString() + ":" + port);
@@ -55,7 +57,7 @@ public class Broker extends Node {
         Handler handler;
         try {
             serverSocket = new ServerSocket(port);
-            System.out.println("Port is now open");
+            System.out.println("Port is now open" + port);
             while (true) {
                 Socket socket = serverSocket.accept();
                 System.out.println("New client has connected");
@@ -70,6 +72,10 @@ public class Broker extends Node {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public ArrayList<VideoFile> getVideos() {
+        return VideosPublisherConnection;
     }
 
     public ArrayList<String> getBrokerchannelnameslist() {
@@ -136,8 +142,8 @@ public class Broker extends Node {
                             String filename = ois.readUTF();
                             AppNodes appn = (AppNodes) ois.readObject();
                             ArrayList<String> hashtagss = new ArrayList<>();
-                            for(int i =0;i<=hashtags.length;i++){
-                                hashtagss.add(hashtags[i]);
+                            for(String has: hashtags){
+                                hashtagss.add(has);
 ;                            }
                             VideosPublisherConnection.add(new VideoFile(filename,channelName,hashtagss, appn)); //adds all information for the video file
                             System.out.println("database updated");
@@ -146,7 +152,7 @@ public class Broker extends Node {
                         case 3: //find a video or a channel and deliver the video
 
                             byte action = ois.readByte();
-                            if(action==1){
+                            if(action==1){ //shows video with the hashtag that was requested
                                 String hashtag = ois.readUTF();
                                 ArrayList<VideoFile> interestingvideos= new ArrayList<>();
                                 for(VideoFile v:getVideos()){
@@ -214,6 +220,30 @@ public class Broker extends Node {
 
         // return the HashText
         return hashtext;
+    }
+
+
+    public void readBrokers(String pathname){
+
+        try {
+            File f = new File("tiktok/brokers/" + pathname);
+            Scanner myReader = new Scanner(f);
+            while (myReader.hasNextLine()) {
+                String data = myReader.nextLine();
+                String[] data2 = data.split(",");
+                int brokerport = Integer.parseInt(data2[1]);
+                String brokerip = data2[0];
+                Socket fellow = new Socket(brokerip,brokerport);
+
+
+            }
+
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
     }
 
 
