@@ -88,21 +88,29 @@ public class Broker extends Node {
 
                 while (true) {
                     int choice = (int) ois.readObject(); //we take the choice
+                    System.out.println(choice);
                     switch (choice) {
                         case 1: //register
-                            String channelName = ois.readUTF();
-                            int channelHash = Util.getModMd5(channelName);
-                            channelHash %= 3;
+                            System.out.println("12");
+                            String channelName = (String) ois.readObject();
+                            System.out.println(channelName);
+                            int channelHash = ois.readInt();
+                            System.out.println(hashid +"===="+ channelHash);
                             if (channelHash < hashid) {
+                                System.out.println("1");
                                 oos.writeBoolean(true);
                                 oos.flush();
-                                brokerchannelnameslist.add(channelName);  //puts channel in broker list
+                                System.out.println("1");
+                                brokerchannelnameslist.add(channelName);
+                                System.out.println(ListOfBrokers.keySet().toString());//puts channel in broker list
                             }else{
                                 for (Integer broker_hash : ListOfBrokers.keySet()){
                                     if (channelHash < broker_hash){
+                                        System.out.println("1");
                                         oos.writeBoolean(false);
                                         oos.writeObject(ListOfBrokers.get(broker_hash));
                                         oos.flush();
+                                        System.out.println("1");
                                         break;
                                     }
                                 }

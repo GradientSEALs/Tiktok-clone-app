@@ -1,7 +1,4 @@
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
 import java.math.BigInteger;
 import java.net.Inet4Address;
 import java.security.MessageDigest;
@@ -125,9 +122,13 @@ public class Util {
     }
 
 
-    public static class Pair<T1, T2>{
+    public static class Pair<T1, T2>implements Serializable {
+
         public T1 item1;
         public T2 item2;
+
+        @Serial
+        private static final long serialVersionUID = -2723363051271966964L;
 
         public Pair(T1 item1, T2 item2) {
             this.item1 = item1;

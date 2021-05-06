@@ -70,6 +70,9 @@ public class AppNodes extends Node {
                         InetAddress brokerIP = InetAddress.getLocalHost();
                         int brokerPort = 4000;
                         brokerSocket = new Socket(brokerIP,brokerPort);
+                        ois = new ObjectInputStream(brokerSocket.getInputStream());
+                        oos = new ObjectOutputStream(brokerSocket.getOutputStream());
+                        System.out.println("skr");
                         boolean reply = register(brokerSocket,answer);
 
                         if (reply) {
@@ -83,6 +86,8 @@ public class AppNodes extends Node {
                             ois.close();
                             brokerSocket.close();
                             brokerSocket = new Socket(rightBrokerInfo.item1, rightBrokerInfo.item2);
+                            ois = new ObjectInputStream(brokerSocket.getInputStream());
+                            oos = new ObjectOutputStream(brokerSocket.getOutputStream());
                             register(brokerSocket,answer);
                         }
                         break;
@@ -115,21 +120,22 @@ public class AppNodes extends Node {
     }
 
     public boolean register(Socket s,int answer) throws IOException {
-        ObjectOutputStream oos = new ObjectOutputStream(brokerSocket.getOutputStream()); //here we have to think of a method to find one random broker
-        ObjectInputStream ois = new ObjectInputStream(brokerSocket.getInputStream());
         oos.writeObject(answer); //sending choice to a random broker
-        oos.flush();
-
         System.out.println("Enter Channel Name");
         name = skr.nextLine();
+        int hash = Util.getModMd5(name);
+        System.out.println(Util.getModMd5(name));
         try{
-            System.out.println("Sending register request...");
             oos.writeObject(name);
             oos.flush();
+            oos.writeInt(hash);
+            oos.flush();
+            System.out.println("1");
         } catch (Exception e) {
             e.printStackTrace();
         }
         boolean reply = ois.readBoolean();
+        System.out.println("Sending register request...");
         return reply;
     }
 
