@@ -1,14 +1,11 @@
+import com.uwyn.jhighlight.fastutil.Hash;
+
 import java.io.*;
-import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Random;
-import java.util.Scanner;
+import java.util.*;
 
 
 @SuppressWarnings("all")
@@ -17,6 +14,16 @@ public class Broker extends Node {
     public ArrayList<String> brokerhashtag = new ArrayList<>();
     public ArrayList<String> brokerchannelnameslist = new ArrayList<>();
     public ArrayList<VideoFile> VideosPublisherConnection = new ArrayList<>();
+
+
+    public HashMap<Integer,Util.Pair<String, Integer>> ListOfBrokers = new HashMap<>();
+    public HashSet<String> hashTags = new HashSet<>();
+    public HashSet<String> channels = new HashSet<>();
+
+    public HashMap<Integer,HashSet<String>> fellowBrokersInfo = new HashMap<>();
+
+
+
 
     InetAddress ipaddress;
     int hashid;
@@ -38,21 +45,15 @@ public class Broker extends Node {
 
     public static void main(String[] args) {
         try {
-            new Broker().run();
+            Broker broker = new Broker();
+            broker.init(args[0],args[1],args[2]);
+            broker.run();
         } catch (UnknownHostException e) {
             e.printStackTrace();
         }
     }
 
     public void run() throws UnknownHostException {
-        Random r = new Random();
-
-        port = r.nextInt(8000-4000) + 4000;
-        ipaddress = InetAddress.getLocalHost();
-        String input = (ipaddress.toString() + ":" + port);
-        hashid = Util.getModMd5(input); //create hashid
-        Node.brokers.add(this);
-        System.out.println(Node.brokers);
         ServerSocket serverSocket = null;
         Handler handler;
         try {
@@ -66,13 +67,147 @@ public class Broker extends Node {
                 handler.start();
             }
             //handler.join();
-
-
-
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+    private class Handler extends Thread {
+        private Socket conn;
+        public ObjectOutputStream oos;
+        public ObjectInputStream ois;
+
+        public Handler(Socket conn) throws IOException {
+            this.conn = conn;
+            oos = new ObjectOutputStream(conn.getOutputStream());
+            ois = new ObjectInputStream(conn.getInputStream());
+        }
+
+        public void run(){
+
+            try {
+
+                while (true) {
+                    int choice = (int) ois.readObject(); //we take the choice
+                    switch (choice) {
+                        case 1: //register
+                            String channelName = ois.readUTF();
+                            int channelHash = Util.getModMd5(channelName);
+                            channelHash %= 3;
+                            if (channelHash < hashid) {
+                                oos.writeBoolean(true);
+                                oos.flush();
+                                brokerchannelnameslist.add(channelName);  //puts channel in broker list
+                            }else{
+                                for (Integer broker_hash : ListOfBrokers.keySet()){
+                                    if (channelHash < broker_hash){
+                                        oos.writeBoolean(false);
+                                        oos.writeObject(ListOfBrokers.get(broker_hash));
+                                        oos.flush();
+                                        break;
+                                    }
+                                }
+                            }
+                            break;
+                        case 2: //publish a video
+                            String videoHashtag = ois.readUTF();
+                            int videoHashID = Util.getModMd5(videoHashtag);
+                            videoHashID %= 3;
+                            boolean appropriate = false;
+                            if (videoHashID < hashid) {
+                                oos.writeBoolean(true);
+                                oos.flush();
+                                appropriate = true ;
+                            }
+                            else {
+                                for (Integer broker_hash : ListOfBrokers.keySet()) {
+                                    if (videoHashID < broker_hash) {
+                                        oos.writeBoolean(false);
+                                        oos.flush();
+                                        oos.writeObject(ListOfBrokers.get(broker_hash));
+                                        oos.flush();
+                                        break;
+                                    }
+                                }
+                            }
+                            if (!appropriate)
+                                break;
+                            else{
+                                VideoFile newVideo = (VideoFile) ois.readObject();
+                                hashTags.add(videoHashtag);
+                                VideosPublisherConnection.add(newVideo);
+                            }
+                            break;
+                        case 3: //find a video or a channel and deliver the video
+                            byte action = ois.readByte();
+                            if(action==1){ //shows video with the hashtag that was requested
+                                String hashtag = ois.readUTF();
+                                ArrayList<VideoFile> interestingvideos= new ArrayList<>();
+                                for(VideoFile v:getVideos()){
+                                    if(v.getAssociatedHashtags().contains(hashtag)){
+                                        interestingvideos.add(v);
+                                    }
+                                }
+                                oos.writeObject(interestingvideos);
+                                String request = ois.readUTF(); //handles the request and is responsible for sending the video
+                            }
+                            else{
+                            }
+                            break;
+                        case 4: //subscrie customer to a hashtag or channel
+                            break;
+                        }
+                    }
+                } catch(ClassNotFoundException | IOException e){
+                    e.printStackTrace();
+                }
+            finally {
+                try {
+                    ois.close();
+                    oos.close();
+                    conn.close();
+                    //  System.exit(1);
+                } catch (IOException ioException) {
+                    ioException.printStackTrace();
+                }
+            }
+        }
+    }
+    public void init(String ip,String port, String pathname) throws UnknownHostException {
+        hashid = Util.getModMd5(ip+":"+port);
+        this.port = Integer.parseInt(port);
+        this.ipaddress = InetAddress.getByName(ip);
+        try {
+            File f = new File("brokers/" + pathname);
+            Scanner myReader = new Scanner(f);
+            while (myReader.hasNextLine()) {
+                String data = myReader.nextLine();
+                int otherHash = Util.getModMd5(data);
+                String[] data2 = data.split(",");
+                int brokerport = Integer.parseInt(data2[1]);
+                String brokerip = data2[0];
+                ListOfBrokers.put(otherHash,new Util.Pair<>(brokerip,brokerport));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+/*    public void update() {
+        try {
+            fellowBrokersInfo.clear();
+            for (Util.Pair<String, Integer> broker_info : ListOfBrokers) {
+                Socket fellob = new Socket(broker_info.item1, broker_info.item2);
+                ObjectInputStream ois = new ObjectInputStream(fellob.getInputStream());
+                HashSet<String> brokerHash = (HashSet<String>) ois.readObject();
+                int id = Util.getModMd5(broker_info.item1 + broker_info.item2.toString());
+                fellowBrokersInfo.put(id, brokerHash);
+
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }*/
 
     public ArrayList<VideoFile> getVideos() {
         return VideosPublisherConnection;
@@ -92,160 +227,6 @@ public class Broker extends Node {
     public int getHashID(){return hashid;}
     public ArrayList<AppNodes> getRegisteredAppNodes(){ return registeredAppNodes; }
     public ArrayList<String> getBrokerhashtag(){return brokerhashtag;}
-
-    private class Handler extends Thread {
-        private Socket conn;
-        public ObjectOutputStream oos;
-        public ObjectInputStream ois;
-
-        public Handler(Socket conn) throws IOException {
-            this.conn = conn;
-            oos = new ObjectOutputStream(conn.getOutputStream());
-            ois = new ObjectInputStream(conn.getInputStream());
-        }
-
-        public void run(){
-
-            try {
-
-                while (true) {
-                    int choice = (int) ois.readObject(); //we take the choice
-
-                    switch (choice) {
-                        case 1: //register
-                            String channelName = ois.readUTF();
-                            if (brokerchannelnameslist.contains(channelName)) {
-                                System.out.println("Channel already exists");
-                                oos.writeByte(-1);
-                                oos.flush();
-                            } else {
-                                oos.writeByte(1);
-                                oos.flush();
-                                AppNodes appn = (AppNodes) ois.readObject();
-                                registeredAppNodes.add(appn);   //puts appnode in broker list
-                                appnodes.add(appn);         //puts appnode in node list
-                                brokerchannelnameslist.add(channelName);  //puts channel in broker list
-                                channelnameslist.add(channelName);  //puts channel in node list
-                            }
-
-
-                            break;
-                        case 2: //publish a video
-                            byte t = ois.readByte();
-                            String[] hashtags =(String[])ois.readObject();
-                            if(t == 1){
-                                Generalhashtags.add(hashtags[0]); ////puts the hashtag in the node hashtag
-                                brokerhashtag.add(hashtags[0]); //puts the hashtag in the broker hashtag
-                            }
-
-                            channelName = ois.readUTF();
-                            String filename = ois.readUTF();
-                            AppNodes appn = (AppNodes) ois.readObject();
-                            ArrayList<String> hashtagss = new ArrayList<>();
-                            for(String has: hashtags){
-                                hashtagss.add(has);
-;                            }
-                            VideosPublisherConnection.add(new VideoFile(filename,channelName,hashtagss, appn)); //adds all information for the video file
-                            System.out.println("database updated");
-                            break;
-
-                        case 3: //find a video or a channel and deliver the video
-
-                            byte action = ois.readByte();
-                            if(action==1){ //shows video with the hashtag that was requested
-                                String hashtag = ois.readUTF();
-                                ArrayList<VideoFile> interestingvideos= new ArrayList<>();
-                                for(VideoFile v:getVideos()){
-                                    if(v.getAssociatedHashtags().contains(hashtag)){
-                                        interestingvideos.add(v);
-                                    }
-
-                                }
-                                oos.writeObject(interestingvideos);
-                                String request = ois.readUTF(); //handles the request and is responsible for sending the video
-
-
-
-
-                            }
-                            else{
-
-                            }
-                            break;
-
-                        case 4: //subscrie customer to a hashtag or channel
-                            break;
-
-
-
-
-                    }
-                }
-
-                } catch(ClassNotFoundException | IOException e){
-                    e.printStackTrace();
-                }
-
-
-
-
-            finally {
-                try {
-                    ois.close();
-                    oos.close();
-                    conn.close();
-                    //  System.exit(1);
-                } catch (IOException ioException) {
-                    ioException.printStackTrace();
-                }
-            }
-        }
-            }
-
-
-    public String calculateHash(String input) throws NoSuchAlgorithmException {
-        MessageDigest md = MessageDigest.getInstance("SHA-1");
-        byte[] messageDigest = md.digest(input.getBytes());
-
-        // Convert byte array into signum representation
-        BigInteger no = new BigInteger(1, messageDigest);
-
-        // Convert message digest into hex value
-        String hashtext = no.toString(16);
-
-        // Add preceding 0s to make it 32 bit
-        while (hashtext.length() < 32) {
-            hashtext = "0" + hashtext;
-        }
-
-        // return the HashText
-        return hashtext;
-    }
-
-
-    public void readBrokers(String pathname){
-
-        try {
-            File f = new File("tiktok/brokers/" + pathname);
-            Scanner myReader = new Scanner(f);
-            while (myReader.hasNextLine()) {
-                String data = myReader.nextLine();
-                String[] data2 = data.split(",");
-                int brokerport = Integer.parseInt(data2[1]);
-                String brokerip = data2[0];
-                Socket fellow = new Socket(brokerip,brokerport);
-
-
-            }
-
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-
-    }
-
 
 }
 

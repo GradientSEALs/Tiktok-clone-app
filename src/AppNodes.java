@@ -1,3 +1,5 @@
+import org.json.JSONException;
+
 import java.io.*;
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -9,13 +11,13 @@ import java.util.*;
 
 public class AppNodes extends Node {
 
+    Scanner skr;
     private ObjectOutputStream oos;
     private ObjectInputStream ois;
     ServerSocket AppServer;
     private Socket brokerSocket = null;
     boolean FirstContact = false;
     public String name;
-
 
     public static void main(String args[]) {
 
@@ -29,7 +31,7 @@ public class AppNodes extends Node {
     public void startService() throws IOException {
 
         boolean loginFlag = false;
-        Scanner skr = new Scanner(System.in);
+        skr = new Scanner(System.in);
         Random r = new Random();
         int port = r.nextInt(10000-8001) + 8001;
         boolean whileFlag = true;
@@ -65,53 +67,30 @@ public class AppNodes extends Node {
 
                 switch (answer) {
                     case 1: //register
-                        ArrayList<Broker> b = getBrokers();
-                        int randomchoice = r.nextInt(b.size() -1) + 1;
-                        Broker br = b.get(randomchoice);
-                        int tempport = br.getPort();
-                        InetAddress brokerip = br.getBrokerIP();
+                        InetAddress brokerIP = InetAddress.getLocalHost();
+                        int brokerPort = 4000;
+                        brokerSocket = new Socket(brokerIP,brokerPort);
+                        boolean reply = register(brokerSocket,answer);
 
-                        brokerSocket = new Socket(brokerip,tempport);
-                        oos = new ObjectOutputStream(brokerSocket.getOutputStream()); //here we have to think of a method to find one random broker
-                        ois = new ObjectInputStream(brokerSocket.getInputStream());
-
-                        oos.writeObject(answer); //sending choice to a random broker
-                        oos.flush();
-
-
-                        System.out.println("Enter Channel Name");
-                        name = skr.nextLine();
-                        try{
-                            System.out.println("Sending register request...");
-                            oos.writeObject(name);
-                            oos.flush();
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                        //byte reply = 0;
-                        byte reply = ois.readByte();
-
-                        if (reply == -1) {
-                            System.out.println("There was an error");
-                        } else {
+                        if (reply) {
                             System.out.println("You are Registered");
                             loginFlag = true;
-                            oos.writeObject(this);
-                            oos.flush();
-
                         }
-
-                        oos.close();
-                        ois.close();
-                        brokerSocket.close();
+                        else{
+                            System.out.println("Trying to find right broker");
+                            Util.Pair<String,Integer> rightBrokerInfo = (Util.Pair<String,Integer>)ois.readObject();
+                            oos.close();
+                            ois.close();
+                            brokerSocket.close();
+                            brokerSocket = new Socket(rightBrokerInfo.item1, rightBrokerInfo.item2);
+                            register(brokerSocket,answer);
+                        }
                         break;
-
-
                     case 2: //publish video
-                        System.out.println("Please choose the name of your channel");
-                        name = skr.nextLine();
-                        // perhaps we can also send the ip and port for the appropriate broker
-                        Publisher pr = new Publisher(name,port);
+                        System.out.println("Please choose your directory");
+                        String path = skr.nextLine();
+                        Publisher pr = new Publisher(name,path,brokerSocket);
+                        pr.notify();
                         pr.run();
                         //pr.start();
                         break;
@@ -130,13 +109,29 @@ public class AppNodes extends Node {
                         break;
             }
             }
-        } catch (IOException e) {
+        } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
-
-
     }
 
+    public boolean register(Socket s,int answer) throws IOException {
+        ObjectOutputStream oos = new ObjectOutputStream(brokerSocket.getOutputStream()); //here we have to think of a method to find one random broker
+        ObjectInputStream ois = new ObjectInputStream(brokerSocket.getInputStream());
+        oos.writeObject(answer); //sending choice to a random broker
+        oos.flush();
+
+        System.out.println("Enter Channel Name");
+        name = skr.nextLine();
+        try{
+            System.out.println("Sending register request...");
+            oos.writeObject(name);
+            oos.flush();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        boolean reply = ois.readBoolean();
+        return reply;
+    }
 
     public void login(Message message){
         try {
