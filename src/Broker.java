@@ -16,7 +16,7 @@ public class Broker extends Node {
     public ArrayList<VideoFile> VideosPublisherConnection = new ArrayList<>();
 
 
-    public HashMap<Integer,Util.Pair<String, Integer>> ListOfBrokers = new HashMap<>();
+    public Map<Integer,Util.Pair<String, Integer>> ListOfBrokers = new TreeMap<>();
     public HashSet<String> hashTags = new HashSet<>();
     public HashSet<String> channels = new HashSet<>();
 
@@ -87,33 +87,37 @@ public class Broker extends Node {
             try {
 
                 while (true) {
-                    int choice = (int) ois.readObject(); //we take the choice
+                    byte choice = 0;
+                    try {
+                        choice = ois.readByte(); //we take the choice
+                    }catch (EOFException f){
+                        f.printStackTrace();
+                    }
                     System.out.println(choice);
                     switch (choice) {
                         case 1: //register
-                            System.out.println("12");
                             String channelName = (String) ois.readObject();
                             System.out.println(channelName);
                             int channelHash = ois.readInt();
                             System.out.println(hashid +"===="+ channelHash);
-                            if (channelHash < hashid) {
-                                System.out.println("1");
-                                oos.writeBoolean(true);
-                                oos.flush();
-                                System.out.println("1");
-                                brokerchannelnameslist.add(channelName);
-                                System.out.println(ListOfBrokers.keySet().toString());//puts channel in broker list
-                            }else{
-                                for (Integer broker_hash : ListOfBrokers.keySet()){
-                                    if (channelHash < broker_hash){
-                                        System.out.println("1");
-                                        oos.writeBoolean(false);
-                                        oos.writeObject(ListOfBrokers.get(broker_hash));
-                                        oos.flush();
-                                        System.out.println("1");
-                                        break;
-                                    }
-                                }
+                            for (int brokerID : ListOfBrokers.keySet()){
+                                if (channelHash < brokerID && brokerID == hashid){
+                                    System.out.println("Writing true");
+                                    oos.writeBoolean(true);
+                                    oos.flush();
+                                    System.out.println("Adding to list");
+                                    brokerchannelnameslist.add(channelName);
+                                    System.out.println(ListOfBrokers.keySet().toString());
+                                    break;
+                                }else if (channelHash < brokerID){
+                                    System.out.println("To next Broker");
+                                    oos.writeBoolean(false);
+                                    oos.flush();
+                                    oos.writeObject(ListOfBrokers.get(brokerID));
+                                    oos.flush();
+                                    System.out.println("Left");
+                                    break;
+                                }else continue;
                             }
                             break;
                         case 2: //publish a video
@@ -181,9 +185,10 @@ public class Broker extends Node {
         }
     }
     public void init(String ip,String port, String pathname) throws UnknownHostException {
-        hashid = Util.getModMd5(ip+":"+port);
+        hashid = Util.getModMd5(ip+","+port);
         this.port = Integer.parseInt(port);
         this.ipaddress = InetAddress.getByName(ip);
+        ListOfBrokers.put(hashid,new Util.Pair<String,Integer>(ip,this.port));
         try {
             File f = new File("brokers/" + pathname);
             Scanner myReader = new Scanner(f);

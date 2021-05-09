@@ -61,7 +61,7 @@ public class AppNodes extends Node {
                     System.out.println("*********");
                 }
 
-                int answer = Integer.parseInt(skr.nextLine());
+                byte answer = Byte.parseByte(skr.nextLine());
 
                 ChannelName cn = null;
 
@@ -73,6 +73,8 @@ public class AppNodes extends Node {
                         ois = new ObjectInputStream(brokerSocket.getInputStream());
                         oos = new ObjectOutputStream(brokerSocket.getOutputStream());
                         System.out.println("skr");
+                        System.out.println("Enter Channel Name");
+                        name = skr.nextLine();
                         boolean reply = register(brokerSocket,answer);
 
                         if (reply) {
@@ -82,13 +84,11 @@ public class AppNodes extends Node {
                         else{
                             System.out.println("Trying to find right broker");
                             Util.Pair<String,Integer> rightBrokerInfo = (Util.Pair<String,Integer>)ois.readObject();
-                            oos.close();
-                            ois.close();
                             brokerSocket.close();
                             brokerSocket = new Socket(rightBrokerInfo.item1, rightBrokerInfo.item2);
                             ois = new ObjectInputStream(brokerSocket.getInputStream());
                             oos = new ObjectOutputStream(brokerSocket.getOutputStream());
-                            register(brokerSocket,answer);
+                            loginFlag = register(brokerSocket,answer);
                         }
                         break;
                     case 2: //publish video
@@ -119,10 +119,9 @@ public class AppNodes extends Node {
         }
     }
 
-    public boolean register(Socket s,int answer) throws IOException {
-        oos.writeObject(answer); //sending choice to a random broker
-        System.out.println("Enter Channel Name");
-        name = skr.nextLine();
+    public boolean register(Socket s,byte answer) throws IOException {
+        oos.writeByte(answer); //sending choice to a random broker
+        oos.flush();
         int hash = Util.getModMd5(name);
         System.out.println(Util.getModMd5(name));
         try{
