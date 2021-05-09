@@ -72,6 +72,7 @@ public class Broker extends Node {
         }
     }
     private class Handler extends Thread {
+        private boolean exit = false;
         private Socket conn;
         public ObjectOutputStream oos;
         public ObjectInputStream ois;
@@ -83,16 +84,9 @@ public class Broker extends Node {
         }
 
         public void run(){
-
             try {
-
-                while (true) {
-                    byte choice = 0;
-                    try {
-                        choice = ois.readByte(); //we take the choice
-                    }catch (EOFException f){
-                        f.printStackTrace();
-                    }
+                while (!exit) {
+                    byte choice = ois.readByte(); //we take the choice
                     System.out.println(choice);
                     switch (choice) {
                         case 1: //register
@@ -115,6 +109,7 @@ public class Broker extends Node {
                                     oos.flush();
                                     oos.writeObject(ListOfBrokers.get(brokerID));
                                     oos.flush();
+                                    _stop();
                                     System.out.println("Left");
                                     break;
                                 }else continue;
@@ -137,6 +132,7 @@ public class Broker extends Node {
                                         oos.flush();
                                         oos.writeObject(ListOfBrokers.get(broker_hash));
                                         oos.flush();
+
                                         break;
                                     }
                                 }
@@ -169,7 +165,8 @@ public class Broker extends Node {
                             break;
                         }
                     }
-                } catch(ClassNotFoundException | IOException e){
+                }
+            catch(ClassNotFoundException | IOException e){
                     e.printStackTrace();
                 }
             finally {
@@ -182,6 +179,10 @@ public class Broker extends Node {
                     ioException.printStackTrace();
                 }
             }
+        }
+        public void _stop()
+        {
+            exit = true;
         }
     }
     public void init(String ip,String port, String pathname) throws UnknownHostException {

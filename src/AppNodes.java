@@ -40,6 +40,12 @@ public class AppNodes extends Node {
         try {
             AppServer = new ServerSocket(port);
 
+            InetAddress brokerIP = InetAddress.getLocalHost();
+            int brokerPort = 4000;
+            brokerSocket = new Socket(brokerIP,brokerPort);
+            ois = new ObjectInputStream(brokerSocket.getInputStream());
+            oos = new ObjectOutputStream(brokerSocket.getOutputStream());
+
             while(whileFlag){
 
 
@@ -67,11 +73,6 @@ public class AppNodes extends Node {
 
                 switch (answer) {
                     case 1: //register
-                        InetAddress brokerIP = InetAddress.getLocalHost();
-                        int brokerPort = 4000;
-                        brokerSocket = new Socket(brokerIP,brokerPort);
-                        ois = new ObjectInputStream(brokerSocket.getInputStream());
-                        oos = new ObjectOutputStream(brokerSocket.getOutputStream());
                         System.out.println("skr");
                         System.out.println("Enter Channel Name");
                         name = skr.nextLine();
@@ -84,6 +85,8 @@ public class AppNodes extends Node {
                         else{
                             System.out.println("Trying to find right broker");
                             Util.Pair<String,Integer> rightBrokerInfo = (Util.Pair<String,Integer>)ois.readObject();
+                            ois.close();
+                            oos.close();
                             brokerSocket.close();
                             brokerSocket = new Socket(rightBrokerInfo.item1, rightBrokerInfo.item2);
                             ois = new ObjectInputStream(brokerSocket.getInputStream());
