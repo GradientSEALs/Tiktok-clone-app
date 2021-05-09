@@ -93,6 +93,7 @@ public class Broker extends Node {
                             String channelName = (String) ois.readObject();
                             System.out.println(channelName);
                             int channelHash = ois.readInt();
+                            channelHash /= 3;
                             System.out.println(hashid +"===="+ channelHash);
                             for (int brokerID : ListOfBrokers.keySet()){
                                 if (channelHash < brokerID && brokerID == hashid){

@@ -1,6 +1,8 @@
 import java.io.*;
 import java.util.*;
 import java.net.Socket;
+
+import org.apache.xmlbeans.impl.common.Mutex;
 import org.json.JSONException;
 @SuppressWarnings("all")
 public class Publisher extends Thread {
@@ -12,6 +14,7 @@ public class Publisher extends Thread {
     String name;
     ObjectOutputStream oos;
     ObjectInputStream ois;
+    Mutex mutex = new Mutex();
 
     public Publisher(String username, String folder, Socket broker){
         this.folder = folder;
@@ -28,15 +31,26 @@ public class Publisher extends Thread {
     public void run() {
         loadAvailableFiles(folder, channelName);
         Scanner skr = new Scanner(System.in);
-        System.out.println(videoFiles);
-        System.out.println("Please give file name");
-        String fileName = skr.nextLine();
-        System.out.println("Please give hashtags(separate with a comma)");
-        String hashtag = skr.nextLine();
+        videoFiles.forEach((v) -> System.out.println(v));
+        String fileName = "";
+        String hashtag = new String();
+        try {
+            mutex.acquire();
+            try {
+                System.out.println("Please give file name");
+                fileName = skr.nextLine();
+                System.out.println("Please give hashtags(separate with a comma)");
+                hashtag = skr.nextLine();
+            } finally {
+                mutex.release();
+            }
+        } catch(InterruptedException ie) {
+            ie.printStackTrace();
+        }
         try {
             findAppropriateBroker(channelName);
             notify(broker,new VideoFile(fileName,channelName,folder));
-        }catch (ClassNotFoundException | IOException | JSONException e){
+        }catch (ClassNotFoundException | IOException  e){
             e.printStackTrace();
         }
         String [] hashtags = hashtag.split(",");
@@ -44,7 +58,7 @@ public class Publisher extends Thread {
             try {
                 findAppropriateBroker(hash);
                 notify(broker,new VideoFile(fileName,channelName,folder));
-            } catch (IOException | ClassNotFoundException | JSONException e) {
+            } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
             }
         }
@@ -66,18 +80,18 @@ public class Publisher extends Thread {
     }
 
     public void loadAvailableFiles(String folder, String channel){
-        File directory = new File(folder);
+        File directory = new File(""+folder);
         File[] contents = directory.listFiles();
-        assert contents != null;
+        if (contents == null){
+            System.out.println("DEN VRIKA TPT AFENTIKO");
+            return;
+        }
         for ( File f : contents) {
             if (f.getName().endsWith(".mp4")) {
-                try {
-                    videoFiles.add(new VideoFile(f.getName(),channel,folder));
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
+                videoFiles.add(new VideoFile(f.getName(),channel,folder));
             }
         }
+
     }
 
     public boolean notify(Socket broker, VideoFile video) throws IOException {

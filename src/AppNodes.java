@@ -98,8 +98,8 @@ public class AppNodes extends Node {
                         System.out.println("Please choose your directory");
                         String path = skr.nextLine();
                         Publisher pr = new Publisher(name,path,brokerSocket);
-                        pr.notify();
-                        pr.run();
+                        //pr.notify();
+                        pr.start();
                         //pr.start();
                         break;
 
