@@ -120,13 +120,13 @@ public class Broker extends Node {
                             channelContent.computeIfAbsent(channelName,k -> new ArrayList<VideoFile>()).add(video);
                             oos.writeBoolean(true);
                             oos.flush();
-                            Util.debug("Reeading hashtag");
+                            Util.debug("Reading hashtag");
                             String hashtag = (String) ois.readObject();
                             int hashtag_hash = Util.getModMd5(hashtag);
                             boolean appropriate = false;
                             for (int brokerID : ListOfBrokers.keySet()){
                                 if (hashtag_hash < brokerID && brokerID == hashid){
-                                    System.out.println("Comptible hashtag");
+                                    System.out.println("Compatible hashtag");
                                     oos.writeBoolean(true);
                                     oos.flush();
                                     System.out.println("Adding to list");

@@ -13,7 +13,7 @@ public class VideoFile implements Serializable {
     public ArrayList<String> associatedHashtags;
     public AppNodes owner;
     @Serial
-    public static final long serial = 37828732876l;
+    private static final long serialVersionUID = -2723363051271966961L;
 
     public VideoFile(String videoName,String channelName,ArrayList<String> associatedHashtags, AppNodes owner){
         this.videoName = videoName;

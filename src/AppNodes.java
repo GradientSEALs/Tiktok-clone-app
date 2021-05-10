@@ -106,6 +106,7 @@ public class AppNodes extends Node {
                         //pr.notify();
                         pr.start();
                         //pr.start();
+
                         break;
 
                     case 3: //find video
@@ -116,6 +117,7 @@ public class AppNodes extends Node {
                         //antistoixo me to pano
                         //Consumer cr = new Consumer();
                         //cr.run();
+
                         break;
 
                     case 4: //declare intention to subscribe to a channel or hashtag
