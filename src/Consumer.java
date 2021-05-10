@@ -16,6 +16,7 @@ public class Consumer extends Thread {
     int brokerport;
     InetAddress brokerip;
     Socket brokersocket;
+    Object lock = new Object();
 
 public Consumer(int port) {
     this.port = port;

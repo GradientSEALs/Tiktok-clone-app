@@ -2,11 +2,12 @@ import java.io.*;
 import java.util.*;
 import java.net.Socket;
 
-import org.apache.xmlbeans.impl.common.Mutex;
+import org.apache.log4j.helpers.UtilLoggingLevel;
 import org.json.JSONException;
 @SuppressWarnings("all")
 public class Publisher extends Thread {
 
+    Object lock = new Object();
     private String folder;
     private final String channelName;
     volatile ArrayList<VideoFile> videoFiles = new ArrayList<>();
@@ -14,12 +15,13 @@ public class Publisher extends Thread {
     String name;
     ObjectOutputStream oos;
     ObjectInputStream ois;
-    Mutex mutex = new Mutex();
 
-    public Publisher(String username, String folder, Socket broker){
+    public Publisher(String username, String folder, Socket broker, ObjectOutputStream oos , ObjectInputStream ois){
         this.folder = folder;
         channelName = username;
         this.broker = broker;
+        this.oos = oos;
+        this.ois = ois;
     }
 
     public Publisher(String name,int port) {
@@ -29,35 +31,24 @@ public class Publisher extends Thread {
 
     @Override
     public void run() {
-        loadAvailableFiles(folder, channelName);
+        /*loadAvailableFiles(folder, channelName);
         Scanner skr = new Scanner(System.in);
-        videoFiles.forEach((v) -> System.out.println(v));
-        String fileName = "";
-        String hashtag = new String();
+        videoFiles.forEach((v) -> System.out.println(v));*/
+        String fileName = "tsimpouki.mp4";
+        System.out.println("Please give hashtags(separate with a comma)");
+        String hashtag = "HAWK,SNIK,PIPES";
         try {
-            mutex.acquire();
-            try {
-                System.out.println("Please give file name");
-                fileName = skr.nextLine();
-                System.out.println("Please give hashtags(separate with a comma)");
-                hashtag = skr.nextLine();
-            } finally {
-                mutex.release();
-            }
-        } catch(InterruptedException ie) {
-            ie.printStackTrace();
-        }
-        try {
-            findAppropriateBroker(channelName);
-            notify(broker,new VideoFile(fileName,channelName,folder));
-        }catch (ClassNotFoundException | IOException  e){
+            //findAppropriateBroker(channelName);
+            Util.debug("ton pairneis ston tetatragono");
+            notify(broker, new VideoFile(fileName, channelName, folder));
+        } catch (IOException e) {
             e.printStackTrace();
         }
-        String [] hashtags = hashtag.split(",");
-        for (String hash: hashtags){
+        String[] hashtags = hashtag.split(",");
+        for (String hash : hashtags) {
             try {
                 findAppropriateBroker(hash);
-                notify(broker,new VideoFile(fileName,channelName,folder));
+                notify(broker, new VideoFile(fileName, channelName, folder));
             } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
             }
@@ -96,22 +87,31 @@ public class Publisher extends Thread {
 
     public boolean notify(Socket broker, VideoFile video) throws IOException {
         boolean notified = false;
-        oos = new ObjectOutputStream(broker.getOutputStream());
-        ois = new ObjectInputStream(broker.getInputStream());
+        Util.debug("ton pairneis");
+        if (ois == null && oos == null){
+            Util.debug("GIATI KLAIEI O MIKROS");
+            ois = new ObjectInputStream(broker.getInputStream());
+            oos = new ObjectOutputStream(broker.getOutputStream());
+        }
+        Util.debug("Writing name");
+        oos.writeByte(2);
+        oos.flush();
+        oos.writeObject(channelName);
+        oos.flush();
+        Util.debug("Writing video");
         oos.writeObject(video);
         oos.flush();
+        Util.debug("Reading response");
         notified = ois.readBoolean();
-        oos.close();
-        ois.close();
         return notified;
     }
 
     public void findAppropriateBroker(String str) throws IOException, ClassNotFoundException {
-        ois = new ObjectInputStream(broker.getInputStream());
-        oos = new ObjectOutputStream(broker.getOutputStream());
-        oos.writeInt(2);
-        oos.flush();
-        oos.writeChars(str);
+        if (ois == null && oos == null){
+            ois = new ObjectInputStream(broker.getInputStream());
+            oos = new ObjectOutputStream(broker.getOutputStream());
+        }
+        oos.writeObject(str);
         boolean appropriate = ois.readBoolean();
         if (appropriate){
             return;

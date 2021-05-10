@@ -10,7 +10,6 @@ import java.util.*;
 
 
 public class AppNodes extends Node {
-
     Scanner skr;
     private ObjectOutputStream oos;
     private ObjectInputStream ois;
@@ -18,6 +17,8 @@ public class AppNodes extends Node {
     private Socket brokerSocket = null;
     boolean FirstContact = false;
     public String name;
+    Publisher pr = null ;
+    Consumer cr = null;
 
     public static void main(String args[]) {
 
@@ -67,8 +68,11 @@ public class AppNodes extends Node {
                     System.out.println("*********");
                 }
 
-                byte answer = Byte.parseByte(skr.nextLine());
-
+                boolean flag = true;
+                byte answer = 0;
+                if (flag) {
+                    answer = Byte.parseByte(skr.nextLine());
+                }
                 ChannelName cn = null;
 
                 switch (answer) {
@@ -95,9 +99,10 @@ public class AppNodes extends Node {
                         }
                         break;
                     case 2: //publish video
+                        flag = false;
                         System.out.println("Please choose your directory");
                         String path = skr.nextLine();
-                        Publisher pr = new Publisher(name,path,brokerSocket);
+                        pr = new Publisher(name,path,brokerSocket,oos,ois);
                         //pr.notify();
                         pr.start();
                         //pr.start();
@@ -105,7 +110,7 @@ public class AppNodes extends Node {
 
                     case 3: //find video
 
-                        Consumer cr = new Consumer(port);
+                        cr = new Consumer(port);
                         cr.run();
                         //find a video
                         //antistoixo me to pano
@@ -115,13 +120,13 @@ public class AppNodes extends Node {
 
                     case 4: //declare intention to subscribe to a channel or hashtag
                         break;
-            }
+                }
+                //pr.join();
             }
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
     }
-
     public boolean register(Socket s,byte answer) throws IOException {
         oos.writeByte(answer); //sending choice to a random broker
         oos.flush();

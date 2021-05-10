@@ -1,10 +1,5 @@
-import com.uwyn.jhighlight.fastutil.Hash;
-
 import java.io.*;
-import java.net.InetAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.UnknownHostException;
+import java.net.*;
 import java.util.*;
 
 
@@ -15,6 +10,7 @@ public class Broker extends Node {
     public ArrayList<String> brokerchannelnameslist = new ArrayList<>();
     public ArrayList<VideoFile> VideosPublisherConnection = new ArrayList<>();
 
+    public volatile HashMap<String,ArrayList<VideoFile>> channelContent = new HashMap<>();
 
     public Map<Integer,Util.Pair<String, Integer>> ListOfBrokers = new TreeMap<>();
     public HashSet<String> hashTags = new HashSet<>();
@@ -117,42 +113,44 @@ public class Broker extends Node {
                             }
                             break;
                         case 2: //publish a video
-                            String videoHashtag = ois.readUTF();
-                            int videoHashID = Util.getModMd5(videoHashtag);
-                            videoHashID %= 3;
+                            Util.debug("Reading channel name and videoname");
+                            channelName = (String) ois.readObject();
+                            VideoFile video = (VideoFile) ois.readObject();
+                            Util.debug("adding to map");
+                            channelContent.computeIfAbsent(channelName,k -> new ArrayList<VideoFile>()).add(video);
+                            oos.writeBoolean(true);
+                            oos.flush();
+                            Util.debug("Reeading hashtag");
+                            String hashtag = (String) ois.readObject();
+                            int hashtag_hash = Util.getModMd5(hashtag);
                             boolean appropriate = false;
-                            if (videoHashID < hashid) {
-                                oos.writeBoolean(true);
-                                oos.flush();
-                                appropriate = true ;
-                            }
-                            else {
-                                for (Integer broker_hash : ListOfBrokers.keySet()) {
-                                    if (videoHashID < broker_hash) {
-                                        oos.writeBoolean(false);
-                                        oos.flush();
-                                        oos.writeObject(ListOfBrokers.get(broker_hash));
-                                        oos.flush();
-
-                                        break;
-                                    }
-                                }
-                            }
-                            if (!appropriate)
-                                break;
-                            else{
-                                VideoFile newVideo = (VideoFile) ois.readObject();
-                                hashTags.add(videoHashtag);
-                                VideosPublisherConnection.add(newVideo);
+                            for (int brokerID : ListOfBrokers.keySet()){
+                                if (hashtag_hash < brokerID && brokerID == hashid){
+                                    System.out.println("Comptible hashtag");
+                                    oos.writeBoolean(true);
+                                    oos.flush();
+                                    System.out.println("Adding to list");
+                                    hashTags.add(channelName);
+                                    break;
+                                }else if (hashtag_hash < brokerID){
+                                    System.out.println("To next Broker");
+                                    oos.writeBoolean(false);
+                                    oos.flush();
+                                    oos.writeObject(ListOfBrokers.get(brokerID));
+                                    oos.flush();
+                                    _stop();
+                                    System.out.println("Left");
+                                    break;
+                                }else continue;
                             }
                             break;
                         case 3: //find a video or a channel and deliver the video
                             byte action = ois.readByte();
                             if(action==1){ //shows video with the hashtag that was requested
-                                String hashtag = ois.readUTF();
+                                String hashtagToFind = ois.readUTF();
                                 ArrayList<VideoFile> interestingvideos= new ArrayList<>();
                                 for(VideoFile v:getVideos()){
-                                    if(v.getAssociatedHashtags().contains(hashtag)){
+                                    if(v.getAssociatedHashtags().contains(hashtagToFind)){
                                         interestingvideos.add(v);
                                     }
                                 }

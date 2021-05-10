@@ -1,14 +1,19 @@
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.*;
 @SuppressWarnings("All")
-public class VideoFile {
+public class VideoFile implements Serializable {
     public String videoName;
     public String channelName;
     //public JSONObject videoDetails;
     public String path;
     public ArrayList<String> associatedHashtags;
     public AppNodes owner;
+    @Serial
+    public static final long serial = 37828732876l;
 
     public VideoFile(String videoName,String channelName,ArrayList<String> associatedHashtags, AppNodes owner){
         this.videoName = videoName;
@@ -48,6 +53,12 @@ public class VideoFile {
         }*/
     }
 
+    @Override
+    public String toString() {
+        return "VideoFile{" +
+                "videoName='" + videoName + '\'' +
+                '}';
+    }
 
     public ArrayList<String> getAssociatedHashtags() {
         return associatedHashtags;
