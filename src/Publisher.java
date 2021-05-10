@@ -36,7 +36,7 @@ public class Publisher extends Thread {
         videoFiles.forEach((v) -> System.out.println(v));*/
         String fileName = "tsimpouki.mp4";
         System.out.println("Please give hashtags(separate with a comma)");
-        String hashtag = "HAWK,SNIK,PIPES";
+        String hashtag = "HAWK SNIK PIPES";
         try {
             //findAppropriateBroker(channelName);
             Util.debug("ton pairneis ston tetatragono");
@@ -44,8 +44,10 @@ public class Publisher extends Thread {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        String[] hashtags = hashtag.split(",");
+        String[] hashtags = hashtag.split(" ");
+        System.out.println(hashtag.length());
         for (String hash : hashtags) {
+            //Util.debug(hash);
             try {
                 findAppropriateBroker(hash);
                 notify(broker, new VideoFile(fileName, channelName, folder));
@@ -121,6 +123,8 @@ public class Publisher extends Thread {
         oos.close();
         broker.close();
         broker = new Socket(newBrokerInfo.item1, newBrokerInfo.item2);
+        oos = new ObjectOutputStream(broker.getOutputStream());
+        ois = new ObjectInputStream(broker.getInputStream());
     }
 
 
