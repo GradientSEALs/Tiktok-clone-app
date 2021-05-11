@@ -38,27 +38,39 @@ public class Publisher extends Thread {
         videoFiles.forEach((v) -> System.out.println(v));*/
         String fileName = "tsimpouki.mp4";
         //System.out.println("Please give hashtags(separate with a comma)");
-        String hashtag = "moripoutana vanasepsaxno ISLAMABAD";
-        try {
+        Scanner in = new Scanner(System.in);
+        System.out.print("Please enter hashtags with a space in between: ");
+        String hashtag = in.nextLine();
+        System.out.println("");
+        /*try { den xreiazetai?
             notify(broker, new VideoFile(fileName, channelName, folder));
         } catch (IOException e) {
             e.printStackTrace();
-        }
+        }*/
         String[] hashtags = hashtag.split(" ");
         System.out.println(hashtag.length());
+
         for (String hash : hashtags) {
-           for (int brokerID : map.keySet()){
-               int hashtag_hash = Util.getModMd5(hash);
-               if (hashtag_hash < brokerID){
-                   try {
-                       broker = new Socket(map.get(brokerID).item1, map.get(brokerID).item2);
-                       notify(broker,new VideoFile(fileName));
-                   } catch (IOException e) {
-                       e.printStackTrace();
-                   }
-               }
-           }
+            System.out.println("I just got into hashtag for");
+             for (int brokerID : map.keySet()){
+             System.out.println("I just did broker for");
+                int hashtag_hash = Util.getModMd5(hash);
+                if (hashtag_hash < brokerID){
+                    try {
+                        broker = new Socket(map.get(brokerID).item1, map.get(brokerID).item2);
+                        notify(broker,new VideoFile(fileName),hash);
+                        System.out.println("I just did notify");
+
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                oos = null;
+                ois = null;
+            }
+
         }
+        Util.debug("Finished the hashtag for loop");
         try {
             broker.close();
         } catch (IOException e) {
@@ -91,7 +103,7 @@ public class Publisher extends Thread {
 
     }
 
-    public boolean notify(Socket broker, VideoFile video) throws IOException {
+    public boolean notify(Socket broker, VideoFile video,String hashtag) throws IOException {
         boolean notified = false;
         //Util.debug("ton pairneis");
         if (ois == null && oos == null){
@@ -100,13 +112,17 @@ public class Publisher extends Thread {
             oos = new ObjectOutputStream(broker.getOutputStream());
         }
         //Util.debug("Writing name");
-        oos.writeByte(2);
+        Util.debug("Wrote choice in notify");
+        oos.writeByte(2); //to enter in the correct case
         oos.flush();
-        oos.writeObject(channelName);
+        oos.writeObject(channelName); //channelName
         oos.flush();
         //Util.debug("Writing video");
-        oos.writeObject(video);
+        oos.writeObject(video); //Video
         oos.flush();
+        oos.writeObject(hashtag); //hashtag
+        oos.flush();
+
         //Util.debug("Reading response");
         notified = ois.readBoolean();
         return notified;

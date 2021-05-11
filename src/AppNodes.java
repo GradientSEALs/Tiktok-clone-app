@@ -50,8 +50,6 @@ public class AppNodes extends Node {
 
             while(whileFlag){
 
-
-
                 if(loginFlag==false) {
                     System.out.println("*********");
                     System.out.println("Welcome to Tik Tok");
@@ -73,6 +71,7 @@ public class AppNodes extends Node {
                 byte answer = 0;
                 if (flag) {
                     answer = Byte.parseByte(skr.nextLine());
+                    System.out.println(answer);
                 }
                 ChannelName cn = null;
 
@@ -104,10 +103,12 @@ public class AppNodes extends Node {
                         flag = false;
                         System.out.println("Please choose your directory");
                         String path = skr.nextLine();
-                        pr = new Publisher(name,path,brokerSocket,oos,ois,ListOfBrokers);
+                        pr = new Publisher(name,path,brokerSocket,oos,ois, ListOfBrokers);
                         //pr.notify();
                         pr.start();
                         //pr.start();
+                        pr.join();
+                        System.out.println("Finished case 2 from appnodes");
 
                         break;
 
@@ -127,7 +128,7 @@ public class AppNodes extends Node {
                 }
                 //pr.join();
             }
-        } catch (IOException | ClassNotFoundException e) {
+        } catch (IOException | ClassNotFoundException | InterruptedException e) {
             e.printStackTrace();
         }
     }

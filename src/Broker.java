@@ -82,6 +82,7 @@ public class Broker extends Node {
         public void run(){
             try {
                 while (!exit) {
+
                     byte choice = ois.readByte(); //we take the choice
                     System.out.println(choice);
                     switch (choice) {
@@ -99,6 +100,8 @@ public class Broker extends Node {
                                     System.out.println("Adding to list");
                                     brokerchannelnameslist.add(channelName);
                                     System.out.println(ListOfBrokers.keySet().toString());
+                                    oos.writeObject(ListOfBrokers);
+                                    oos.flush();
                                     break;
                                 }else if (channelHash < brokerID){
                                     System.out.println("To next Broker");
@@ -108,21 +111,30 @@ public class Broker extends Node {
                                     oos.flush();
                                     _stop();
                                     System.out.println("Left");
+                                    oos.writeObject(ListOfBrokers);
+                                    oos.flush();
                                     break;
                                 }else continue;
                             }
                             oos.writeObject(ListOfBrokers);
+                            oos.flush();
                             break;
                         case 2: //publish a video
                             Util.debug("Reading channel name and videoname");
                             channelName = (String) ois.readObject();
                             VideoFile video = (VideoFile) ois.readObject();
+                            String hashtag = (String) ois.readObject();
                             Util.debug("adding to map");
                             Util.debug(channelName);
                             channelContent.computeIfAbsent(channelName,k -> new ArrayList<VideoFile>()).add(video);
-                            oos.writeBoolean(true);
+                            hashTags.add(hashtag);
+                            Util.debug("Added hashtag to broker's hashtag");
+                            System.out.println(hashTags);
+
+                            oos.writeBoolean(true); //says to the AppNode that we were notified
                             oos.flush();
-                            Util.debug("Reading hashtag");
+                            System.out.println("I just returned notify");
+                            /*Util.debug("Reading hashtag");
                             String hashtag = (String) ois.readObject();
                             Util.debug(hashtag);
                             int hashtag_hash = Util.getModMd5(hashtag);
@@ -145,8 +157,7 @@ public class Broker extends Node {
                                     System.out.println("Left");
                                     break;
                                 }else continue;
-                            }
-                            hashTags.forEach(k -> System.out.println(k));
+                            }*/
                             break;
                         case 3: //find a video or a channel and deliver the video
                             byte action = ois.readByte();
@@ -166,12 +177,15 @@ public class Broker extends Node {
                             break;
                         case 4: //subscrie customer to a hashtag or channel
                             break;
-                        }
                     }
                 }
+            }
+            catch (EOFException e){
+                System.out.println("Exeis EOFE");
+            }
             catch(ClassNotFoundException | IOException e){
-                    e.printStackTrace();
-                }
+                e.printStackTrace();
+            }
             finally {
                 try {
                     ois.close();
