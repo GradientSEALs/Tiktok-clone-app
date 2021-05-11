@@ -14,7 +14,6 @@ public class VideoFile implements Serializable {
     public AppNodes owner;
     @Serial
     private static final long serialVersionUID = -2723363051253966964L;
-
     public VideoFile(String videoName,String channelName,ArrayList<String> associatedHashtags, AppNodes owner){
         this.videoName = videoName;
         this.channelName = channelName;

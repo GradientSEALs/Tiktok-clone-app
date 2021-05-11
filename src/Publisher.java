@@ -119,9 +119,9 @@ public class Publisher extends Thread {
             return;
         }
         Util.Pair<String,Integer> newBrokerInfo = (Util.Pair<String,Integer>)ois.readObject();
-        ois.close();
-        oos.close();
-        broker.close();
+       /* ois.close();
+        oos.close();*/
+
         broker = new Socket(newBrokerInfo.item1, newBrokerInfo.item2);
         oos = new ObjectOutputStream(broker.getOutputStream());
         ois = new ObjectInputStream(broker.getInputStream());
