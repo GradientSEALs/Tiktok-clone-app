@@ -111,12 +111,14 @@ public class Broker extends Node {
                                     break;
                                 }else continue;
                             }
+                            oos.writeObject(ListOfBrokers);
                             break;
                         case 2: //publish a video
                             Util.debug("Reading channel name and videoname");
                             channelName = (String) ois.readObject();
                             VideoFile video = (VideoFile) ois.readObject();
                             Util.debug("adding to map");
+                            Util.debug(channelName);
                             channelContent.computeIfAbsent(channelName,k -> new ArrayList<VideoFile>()).add(video);
                             oos.writeBoolean(true);
                             oos.flush();
@@ -124,7 +126,7 @@ public class Broker extends Node {
                             String hashtag = (String) ois.readObject();
                             Util.debug(hashtag);
                             int hashtag_hash = Util.getModMd5(hashtag);
-                            hashtag_hash /= 3;
+                            hashtag_hash %= 3;
                             boolean appropriate = false;
                             for (int brokerID : ListOfBrokers.keySet()){
                                 if (hashtag_hash < brokerID && brokerID == hashid){
@@ -132,7 +134,7 @@ public class Broker extends Node {
                                     oos.writeBoolean(true);
                                     oos.flush();
                                     System.out.println("Adding to list");
-                                    hashTags.add(channelName);
+                                    hashTags.add(hashtag);
                                     break;
                                 }else if (hashtag_hash < brokerID){
                                     System.out.println("To next Broker");
@@ -140,7 +142,6 @@ public class Broker extends Node {
                                     oos.flush();
                                     oos.writeObject(ListOfBrokers.get(brokerID));
                                     oos.flush();
-                                    _stop();
                                     System.out.println("Left");
                                     break;
                                 }else continue;

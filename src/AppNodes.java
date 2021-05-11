@@ -1,3 +1,4 @@
+import org.apache.commons.lang3.ObjectUtils;
 import org.json.JSONException;
 
 import java.io.*;
@@ -40,7 +41,7 @@ public class AppNodes extends Node {
 
         try {
             AppServer = new ServerSocket(port);
-
+            Map<Integer,Util.Pair<String, Integer>> ListOfBrokers = null;
             InetAddress brokerIP = InetAddress.getLocalHost();
             int brokerPort = 4000;
             brokerSocket = new Socket(brokerIP,brokerPort);
@@ -97,12 +98,13 @@ public class AppNodes extends Node {
                             oos = new ObjectOutputStream(brokerSocket.getOutputStream());
                             loginFlag = register(brokerSocket,answer);
                         }
+                        ListOfBrokers = (Map<Integer,Util.Pair<String, Integer>>) ois.readObject();
                         break;
                     case 2: //publish video
                         flag = false;
                         System.out.println("Please choose your directory");
                         String path = skr.nextLine();
-                        pr = new Publisher(name,path,brokerSocket,oos,ois);
+                        pr = new Publisher(name,path,brokerSocket,oos,ois,ListOfBrokers);
                         //pr.notify();
                         pr.start();
                         //pr.start();

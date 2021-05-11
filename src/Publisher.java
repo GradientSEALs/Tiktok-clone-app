@@ -15,13 +15,15 @@ public class Publisher extends Thread {
     String name;
     ObjectOutputStream oos;
     ObjectInputStream ois;
+    Map<Integer,Util.Pair<String, Integer>> map;
 
-    public Publisher(String username, String folder, Socket broker, ObjectOutputStream oos , ObjectInputStream ois){
+    public Publisher(String username, String folder, Socket broker, ObjectOutputStream oos , ObjectInputStream ois, Map<Integer,Util.Pair<String, Integer>> map){
         this.folder = folder;
         channelName = username;
         this.broker = broker;
         this.oos = oos;
         this.ois = ois;
+        this.map = map;
     }
 
     public Publisher(String name,int port) {
@@ -35,11 +37,9 @@ public class Publisher extends Thread {
         Scanner skr = new Scanner(System.in);
         videoFiles.forEach((v) -> System.out.println(v));*/
         String fileName = "tsimpouki.mp4";
-        System.out.println("Please give hashtags(separate with a comma)");
-        String hashtag = "HAWK SNIK PIPES";
+        //System.out.println("Please give hashtags(separate with a comma)");
+        String hashtag = "moripoutana vanasepsaxno ISLAMABAD";
         try {
-            //findAppropriateBroker(channelName);
-            Util.debug("ton pairneis ston tetatragono");
             notify(broker, new VideoFile(fileName, channelName, folder));
         } catch (IOException e) {
             e.printStackTrace();
@@ -47,13 +47,17 @@ public class Publisher extends Thread {
         String[] hashtags = hashtag.split(" ");
         System.out.println(hashtag.length());
         for (String hash : hashtags) {
-            //Util.debug(hash);
-            try {
-                findAppropriateBroker(hash);
-                notify(broker, new VideoFile(fileName, channelName, folder));
-            } catch (IOException | ClassNotFoundException e) {
-                e.printStackTrace();
-            }
+           for (int brokerID : map.keySet()){
+               int hashtag_hash = Util.getModMd5(hash);
+               if (hashtag_hash < brokerID){
+                   try {
+                       broker = new Socket(map.get(brokerID).item1, map.get(brokerID).item2);
+                       notify(broker,new VideoFile(fileName));
+                   } catch (IOException e) {
+                       e.printStackTrace();
+                   }
+               }
+           }
         }
         try {
             broker.close();
@@ -89,26 +93,26 @@ public class Publisher extends Thread {
 
     public boolean notify(Socket broker, VideoFile video) throws IOException {
         boolean notified = false;
-        Util.debug("ton pairneis");
+        //Util.debug("ton pairneis");
         if (ois == null && oos == null){
             Util.debug("GIATI KLAIEI O MIKROS");
             ois = new ObjectInputStream(broker.getInputStream());
             oos = new ObjectOutputStream(broker.getOutputStream());
         }
-        Util.debug("Writing name");
+        //Util.debug("Writing name");
         oos.writeByte(2);
         oos.flush();
         oos.writeObject(channelName);
         oos.flush();
-        Util.debug("Writing video");
+        //Util.debug("Writing video");
         oos.writeObject(video);
         oos.flush();
-        Util.debug("Reading response");
+        //Util.debug("Reading response");
         notified = ois.readBoolean();
         return notified;
     }
 
-    public void findAppropriateBroker(String str) throws IOException, ClassNotFoundException {
+ /*   public void findAppropriateBroker(String str) throws IOException, ClassNotFoundException {
         if (ois == null && oos == null){
             ois = new ObjectInputStream(broker.getInputStream());
             oos = new ObjectOutputStream(broker.getOutputStream());
@@ -119,13 +123,13 @@ public class Publisher extends Thread {
             return;
         }
         Util.Pair<String,Integer> newBrokerInfo = (Util.Pair<String,Integer>)ois.readObject();
-       /* ois.close();
-        oos.close();*/
+       *//* ois.close();
+        oos.close();*//*
 
         broker = new Socket(newBrokerInfo.item1, newBrokerInfo.item2);
         oos = new ObjectOutputStream(broker.getOutputStream());
         ois = new ObjectInputStream(broker.getInputStream());
-    }
+    }*/
 
 
     //public Broker hashTopic(String hashTopic)
