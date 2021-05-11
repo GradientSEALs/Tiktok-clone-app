@@ -72,13 +72,11 @@ public class AppNodes extends Node {
                 byte answer = 0;
                 if (flag) {
                     answer = Byte.parseByte(skr.nextLine());
-                    System.out.println(answer);
                 }
                 ChannelName cn = null;
 
                 switch (answer) {
                     case 1: //register
-                        System.out.println("skr");
                         System.out.println("Enter Channel Name");
                         name = skr.nextLine();
                         boolean reply = register(brokerSocket,answer);
@@ -99,24 +97,27 @@ public class AppNodes extends Node {
                             loginFlag = register(brokerSocket,answer);
                         }
                         map = (Map<Integer,Util.Pair<String, Integer>>) ois.readObject();
+                        brokerSocket.close();
                         break;
                     case 2: //publish video
-                        System.out.println("Please choose your directory");
+                        //System.out.println("Please choose your directory");
+
                         String fileName = "tsimpouki.mp4";
-                        String hashtag = "hawk tsimpoukis papas";
+                        System.out.println("Please give us the video Hashtags with a space in between");
+                        String hashtag = skr.nextLine();
                         String[] hashtags = hashtag.split(" ");
                         System.out.println(hashtag.length());
 
                         for (String hash : hashtags) {
-                            System.out.println("I just got into hashtag for");
+
                             for (int brokerID : map.keySet()) {
-                                System.out.println("I just did broker for");
+
                                 int hashtag_hash = Util.getModMd5(hash);
                                 if (hashtag_hash < brokerID) {
                                     try {
                                         brokerSocket = new Socket(map.get(brokerID).item1, map.get(brokerID).item2);
                                         notify(brokerSocket, new VideoFile(fileName), hash);
-                                        System.out.println("I just did notify");
+
 
                                     } catch (IOException e) {
                                         e.printStackTrace();
@@ -136,17 +137,69 @@ public class AppNodes extends Node {
                         //pr.start();
                         //pr.join();
                         System.out.println("Finished case 2 from appnodes");
-
+                        brokerSocket.close();
                         break;
 
                     case 3: //find video
 
-                        cr = new Consumer(port);
-                        cr.run();
-                        //find a video
-                        //antistoixo me to pano
-                        //Consumer cr = new Consumer();
-                        //cr.run();
+
+                        ois = null;
+                        oos = null;
+
+                        System.out.println("*********");
+                        System.out.println("Available Actions");
+                        System.out.println("1. Show all available videos ");
+                        System.out.println("2. Show all hashtag names");
+                        System.out.println("3. Show all channel names");
+                        System.out.println("Please pick the action you want");
+                        System.out.println("*********");
+
+                        Byte action = Byte.parseByte(skr.nextLine());
+                        HashSet<String> retrievedItems = new HashSet<>(); //Hashset were hashtags,video names and channelnames will be displayed
+                        for (int brokerID : map.keySet()) {
+
+                            try {
+                                brokerSocket = new Socket(map.get(brokerID).item1, map.get(brokerID).item2);
+                                ois = new ObjectInputStream(brokerSocket.getInputStream());
+                                oos = new ObjectOutputStream(brokerSocket.getOutputStream());
+                                oos.writeByte(3); //gives choice to the broker
+                                oos.flush();
+                                oos.writeByte(action); //gives action to broker
+                                oos.flush();
+
+                                ArrayList<String> givenItems = (ArrayList<String>) ois.readObject();
+
+                                for(String s: givenItems){
+                                    retrievedItems.add(s);
+                                }
+
+
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+
+                        System.out.println("The Items you asked are :"); //brings all hashtags,names or videonames successfully
+                        System.out.println(retrievedItems);
+                        oos = null;
+                        ois = null;
+
+                        if(action==1){
+                           System.out.println("Please pick a hashtag to show you the videos");
+                        }
+                        else if (action==2){
+
+                        }
+                        else{
+
+                        }
+
+
+
+
+                       /* cr = new Consumer(port);
+                        cr.run();*/
+
 
                         break;
 
@@ -191,12 +244,10 @@ public class AppNodes extends Node {
         boolean notified = false;
         //Util.debug("ton pairneis");
         if (ois == null && oos == null){
-            Util.debug("GIATI KLAIEI O MIKROS");
             ois = new ObjectInputStream(broker.getInputStream());
             oos = new ObjectOutputStream(broker.getOutputStream());
         }
         //Util.debug("Writing name");
-        Util.debug("Wrote choice in notify");
         oos.writeByte(2); //to enter in the correct case
         oos.flush();
         oos.writeObject(hashtag); //channelName

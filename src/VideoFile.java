@@ -52,6 +52,15 @@ public class VideoFile implements Serializable {
         }*/
     }
 
+
+    public String getChannelName() {
+        return channelName;
+    }
+
+    public String getVideoName() {
+        return videoName;
+    }
+
     @Override
     public String toString() {
         return "VideoFile{" +

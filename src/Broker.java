@@ -161,21 +161,32 @@ public class Broker extends Node {
                             break;
                         case 3: //find a video or a channel and deliver the video
                             byte action = ois.readByte();
-                            if(action==1){ //shows video with the hashtag that was requested
-                                String hashtagToFind = ois.readUTF();
-                                ArrayList<VideoFile> interestingvideos= new ArrayList<>();
+                            if(action==1){
+                                ArrayList<String> videonames= new ArrayList<>();
                                 for(VideoFile v:getVideos()){
-                                    if(v.getAssociatedHashtags().contains(hashtagToFind)){
-                                        interestingvideos.add(v);
-                                    }
+                                    videonames.add(v.getVideoName());
                                 }
-                                oos.writeObject(interestingvideos);
-                                String request = ois.readUTF(); //handles the request and is responsible for sending the video
+                                oos.writeObject(videonames);
+                                oos.flush();
+                            }
+                            else if (action==2){
+                                ArrayList<String> hashtagnames= new ArrayList<>();
+                                for(String s:hashTags){
+                                    hashtagnames.add(s);
+                                }
+                                oos.writeObject(hashtagnames);
+                                oos.flush();
                             }
                             else{
+                                ArrayList<String> channelnames= new ArrayList<>();
+                                for(String s:channels){
+                                    channelnames.add(s);
+                                }
+                                oos.writeObject(channelnames);
+                                oos.flush();
                             }
                             break;
-                        case 4: //subscrie customer to a hashtag or channel
+                        case 4: //subscribe customer to a hashtag or channel
                             break;
                     }
                 }
