@@ -2,160 +2,41 @@ import java.io.*;
 import java.util.*;
 import java.net.Socket;
 
-import org.apache.log4j.helpers.UtilLoggingLevel;
-import org.json.JSONException;
 @SuppressWarnings("all")
 public class Publisher extends Thread {
 
-    Object lock = new Object();
-    private String folder;
-    private final String channelName;
-    volatile ArrayList<VideoFile> videoFiles = new ArrayList<>();
-    Socket broker = null;
-    String name;
+    VideoFile video;
+    Socket connection = null;
     ObjectOutputStream oos;
     ObjectInputStream ois;
-    Map<Integer,Util.Pair<String, Integer>> map;
+    Map<Integer, Util.Pair<String, Integer>> map;
 
-    public Publisher(String username, String folder, Socket broker, ObjectOutputStream oos , ObjectInputStream ois, Map<Integer,Util.Pair<String, Integer>> map){
-        this.folder = folder;
-        channelName = username;
-        this.broker = broker;
-        this.oos = oos;
-        this.ois = ois;
-        this.map = map;
-    }
-
-    public Publisher(String name,int port) {
-        this.name = name;
-        channelName = name;
+    public Publisher(Socket connection, VideoFile video) {
+        this.connection = connection;
+        this.video = video;
     }
 
     @Override
     public void run() {
-        /*loadAvailableFiles(folder, channelName);
-        Scanner skr = new Scanner(System.in);
-        videoFiles.forEach((v) -> System.out.println(v));*/
-        String fileName = "tsimpouki.mp4";
-        //System.out.println("Please give hashtags(separate with a comma)");
-        Scanner in = new Scanner(System.in);
-        System.out.print("Please enter hashtags with a space in between: ");
-        String hashtag = in.nextLine();
-        System.out.println("");
-        /*try { den xreiazetai?
-            notify(broker, new VideoFile(fileName, channelName, folder));
+        try {
+            push(video, connection);
         } catch (IOException e) {
             e.printStackTrace();
-        }*/
-        String[] hashtags = hashtag.split(" ");
-        System.out.println(hashtag.length());
-
-        for (String hash : hashtags) {
-            System.out.println("I just got into hashtag for");
-             for (int brokerID : map.keySet()){
-             System.out.println("I just did broker for");
-                int hashtag_hash = Util.getModMd5(hash);
-                if (hashtag_hash < brokerID){
-                    try {
-                        broker = new Socket(map.get(brokerID).item1, map.get(brokerID).item2);
-                        notify(broker,new VideoFile(fileName),hash);
-                        System.out.println("I just did notify");
-
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-                oos = null;
-                ois = null;
-            }
-
         }
-        Util.debug("Finished the hashtag for loop");
         try {
-            broker.close();
+            connection.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public void push(VideoFile videoFile,Socket consumer) throws IOException {
+    public void push(VideoFile videoFile, Socket consumer) throws IOException {
         byte[] videoData = Util.loadVideoFromDiskToRam(videoFile);
         List<byte[]> chunckedVideo = Util.chunkifyFile(videoData);
         oos = (ObjectOutputStream) consumer.getOutputStream();
-        for (byte[] data: chunckedVideo){
+        for (byte[] data : chunckedVideo) {
             oos.write(data);
             oos.flush();
         }
     }
-
-    public void loadAvailableFiles(String folder, String channel){
-        File directory = new File(""+folder);
-        File[] contents = directory.listFiles();
-        if (contents == null){
-            System.out.println("DEN VRIKA TPT AFENTIKO");
-            return;
-        }
-        for ( File f : contents) {
-            if (f.getName().endsWith(".mp4")) {
-                videoFiles.add(new VideoFile(f.getName(),channel,folder));
-            }
-        }
-
-    }
-
-    public boolean notify(Socket broker, VideoFile video,String hashtag) throws IOException {
-        boolean notified = false;
-        //Util.debug("ton pairneis");
-        if (ois == null && oos == null){
-            Util.debug("GIATI KLAIEI O MIKROS");
-            ois = new ObjectInputStream(broker.getInputStream());
-            oos = new ObjectOutputStream(broker.getOutputStream());
-        }
-        //Util.debug("Writing name");
-        Util.debug("Wrote choice in notify");
-        oos.writeByte(2); //to enter in the correct case
-        oos.flush();
-        oos.writeObject(channelName); //channelName
-        oos.flush();
-        //Util.debug("Writing video");
-        oos.writeObject(video); //Video
-        oos.flush();
-        oos.writeObject(hashtag); //hashtag
-        oos.flush();
-
-        //Util.debug("Reading response");
-        notified = ois.readBoolean();
-        return notified;
-    }
-
- /*   public void findAppropriateBroker(String str) throws IOException, ClassNotFoundException {
-        if (ois == null && oos == null){
-            ois = new ObjectInputStream(broker.getInputStream());
-            oos = new ObjectOutputStream(broker.getOutputStream());
-        }
-        oos.writeObject(str);
-        boolean appropriate = ois.readBoolean();
-        if (appropriate){
-            return;
-        }
-        Util.Pair<String,Integer> newBrokerInfo = (Util.Pair<String,Integer>)ois.readObject();
-       *//* ois.close();
-        oos.close();*//*
-
-        broker = new Socket(newBrokerInfo.item1, newBrokerInfo.item2);
-        oos = new ObjectOutputStream(broker.getOutputStream());
-        ois = new ObjectInputStream(broker.getInputStream());
-    }*/
-
-
-    //public Broker hashTopic(String hashTopic)
-
-    //public void push (String,Value)
-
-    //public void notifyFailure (Broker b)
-
-    //public void notifyBrokersForHashtags(String)
-
-    // public ArrayList<Value> generateChunks (String)
-
 }

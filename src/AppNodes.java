@@ -20,6 +20,8 @@ public class AppNodes extends Node {
     public String name;
     Publisher pr = null ;
     Consumer cr = null;
+    volatile ArrayList<VideoFile> videoFiles = new ArrayList<>();
+    Map<Integer,Util.Pair<String, Integer>> map;
 
     public static void main(String args[]) {
 
@@ -41,7 +43,6 @@ public class AppNodes extends Node {
 
         try {
             AppServer = new ServerSocket(port);
-            Map<Integer,Util.Pair<String, Integer>> ListOfBrokers = null;
             InetAddress brokerIP = InetAddress.getLocalHost();
             int brokerPort = 4000;
             brokerSocket = new Socket(brokerIP,brokerPort);
@@ -97,17 +98,43 @@ public class AppNodes extends Node {
                             oos = new ObjectOutputStream(brokerSocket.getOutputStream());
                             loginFlag = register(brokerSocket,answer);
                         }
-                        ListOfBrokers = (Map<Integer,Util.Pair<String, Integer>>) ois.readObject();
+                        map = (Map<Integer,Util.Pair<String, Integer>>) ois.readObject();
                         break;
                     case 2: //publish video
-                        flag = false;
                         System.out.println("Please choose your directory");
-                        String path = skr.nextLine();
-                        pr = new Publisher(name,path,brokerSocket,oos,ois, ListOfBrokers);
+                        String fileName = "tsimpouki.mp4";
+                        String hashtag = "hawk tsimpoukis papas";
+                        String[] hashtags = hashtag.split(" ");
+                        System.out.println(hashtag.length());
+
+                        for (String hash : hashtags) {
+                            System.out.println("I just got into hashtag for");
+                            for (int brokerID : map.keySet()) {
+                                System.out.println("I just did broker for");
+                                int hashtag_hash = Util.getModMd5(hash);
+                                if (hashtag_hash < brokerID) {
+                                    try {
+                                        brokerSocket = new Socket(map.get(brokerID).item1, map.get(brokerID).item2);
+                                        notify(brokerSocket, new VideoFile(fileName), hash);
+                                        System.out.println("I just did notify");
+
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                                oos = null;
+                                ois = null;
+                            }
+                        }
+
+
+
+
+                        //pr = new Publisher(AppServer.accept(),);
                         //pr.notify();
-                        pr.start();
                         //pr.start();
-                        pr.join();
+                        //pr.start();
+                        //pr.join();
                         System.out.println("Finished case 2 from appnodes");
 
                         break;
@@ -128,7 +155,7 @@ public class AppNodes extends Node {
                 }
                 //pr.join();
             }
-        } catch (IOException | ClassNotFoundException | InterruptedException e) {
+        } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
     }
@@ -160,16 +187,46 @@ public class AppNodes extends Node {
             e.printStackTrace();
         }
     }
+    public boolean notify(Socket broker, VideoFile video,String hashtag) throws IOException {
+        boolean notified = false;
+        //Util.debug("ton pairneis");
+        if (ois == null && oos == null){
+            Util.debug("GIATI KLAIEI O MIKROS");
+            ois = new ObjectInputStream(broker.getInputStream());
+            oos = new ObjectOutputStream(broker.getOutputStream());
+        }
+        //Util.debug("Writing name");
+        Util.debug("Wrote choice in notify");
+        oos.writeByte(2); //to enter in the correct case
+        oos.flush();
+        oos.writeObject(hashtag); //channelName
+        oos.flush();
+        //Util.debug("Writing video");
+        oos.writeObject(video); //Video
+        oos.flush();
+        oos.writeObject(hashtag); //hashtag
+        oos.flush();
+
+        //Util.debug("Reading response");
+        notified = ois.readBoolean();
+        return notified;
+    }
+
 
 
     public String getChannelName(){return name;}
 
 
-
-
-    public static class Handler extends Thread{
-
-
-    }
-
+    /*public void loadAvailableFiles(String folder, String channel){
+        File directory = new File(""+folder);
+        File[] contents = directory.listFiles();
+        if (contents == null){
+            System.out.println("DEN VRIKA TPT AFENTIKO");
+            return;
+        }
+        for ( File f : contents) {
+            if (f.getName().endsWith(".mp4")) {
+                videoFiles.add(new VideoFile(f.getName(),channel,folder));
+            }
+        }*/
 }
