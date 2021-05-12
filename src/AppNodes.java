@@ -51,6 +51,14 @@ public class AppNodes extends Node {
 
             while(whileFlag){
 
+                // Initiates a publisher handler for each connection received
+                Socket socket = AppServer.accept();
+                new Handler(socket).start();
+
+
+
+
+
                 if(loginFlag==false) {
                     System.out.println("*********");
                     System.out.println("Welcome to Tik Tok");
@@ -96,11 +104,20 @@ public class AppNodes extends Node {
                             oos = new ObjectOutputStream(brokerSocket.getOutputStream());
                             loginFlag = register(brokerSocket,answer);
                         }
-                        map = (Map<Integer,Util.Pair<String, Integer>>) ois.readObject();
+                        map = (Map<Integer,Util.Pair<String, Integer>>) ois.readObject(); // broker info
                         brokerSocket.close();
                         break;
                     case 2: //publish video
-                        //System.out.println("Please choose your directory");
+
+
+                        /*System.out.println("Please choose your directory");
+                        String folder = skr.nextLine();*/
+                        String folder = "dir1";
+                        /*loadAvailableFiles(folder, channelName);
+                        Scanner skr = new Scanner(System.in);
+                        videoFiles.forEach((v) -> System.out.println(v));*/
+
+
 
                         String fileName = "tsimpouki.mp4";
                         System.out.println("Please give us the video Hashtags with a space in between");
@@ -116,17 +133,22 @@ public class AppNodes extends Node {
                                 if (hashtag_hash < brokerID) {
                                     try {
                                         brokerSocket = new Socket(map.get(brokerID).item1, map.get(brokerID).item2);
-                                        notify(brokerSocket, new VideoFile(fileName), hash);
+                                        notify(brokerSocket, new VideoFile(fileName, name, folder, hashtags), hash);
 
 
                                     } catch (IOException e) {
                                         e.printStackTrace();
                                     }
+                                    oos = null;
+                                    ois = null;
+                                    break;
                                 }
                                 oos = null;
                                 ois = null;
+
                             }
                         }
+
 
 
 
@@ -148,9 +170,8 @@ public class AppNodes extends Node {
 
                         System.out.println("*********");
                         System.out.println("Available Actions");
-                        System.out.println("1. Show all available videos ");
-                        System.out.println("2. Show all hashtag names");
-                        System.out.println("3. Show all channel names");
+                        System.out.println("1. Show all hashtag names");
+                        System.out.println("2. Show all channel names");
                         System.out.println("Please pick the action you want");
                         System.out.println("*********");
 
@@ -184,15 +205,81 @@ public class AppNodes extends Node {
                         oos = null;
                         ois = null;
 
-                        if(action==1){
-                           System.out.println("Please pick a hashtag to show you the videos");
-                        }
-                        else if (action==2){
+
+                       System.out.println("Please pick what you want to show you the videos(If you want multiple put a space in between)");
+                       String[] desiredhash = skr.nextLine().split(" ");
+                       HashSet<String> interestingvideos = new HashSet<>();
+                       HashSet<String> finalinterestingvideos= new HashSet<>();
+                        for (int brokerID : map.keySet()) { //searches appropriate broker to send the query
+                            for(String s: desiredhash) {
+                                int hash = Util.getModMd5(s);
+                                if (hash < brokerID) {
+                                    try {
+                                        brokerSocket = new Socket(map.get(brokerID).item1, map.get(brokerID).item2);
+                                        ois = new ObjectInputStream(brokerSocket.getInputStream());
+                                        oos = new ObjectOutputStream(brokerSocket.getOutputStream());
+                                        oos.writeByte(5);
+                                        oos.flush();
+                                        oos.writeObject(s);
+                                        oos.flush();
+
+                                        interestingvideos = (HashSet<String>) ois.readObject();
+                                        //receives interesting videos for display
+                                        for(String v: interestingvideos){
+                                            finalinterestingvideos.add(v);
+                                        }
+
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+
+                            }
+                            oos = null;
+                            ois = null;
 
                         }
-                        else{
+                        System.out.println("These are the associated videos");
+                        System.out.println(finalinterestingvideos);
+                        System.out.println("Please pick one");
+                        String videoname = skr.nextLine();
+
+                        for (int brokerID : map.keySet()) { //searches appropriate broker to send the query
+                            brokerSocket = new Socket(map.get(brokerID).item1, map.get(brokerID).item2);
+                            ois = new ObjectInputStream(brokerSocket.getInputStream());
+                            oos = new ObjectOutputStream(brokerSocket.getOutputStream());
+
+                            oos.writeByte(6);
+                            oos.flush();
+                            oos.writeObject(videoname);
+                            oos.flush();
+
+                            boolean exists = ois.readBoolean();
+
+                            if(exists){
+                                Socket socket2 = AppServer.accept();
+                                System.out.println("Video Owner connected");
+                                System.out.println("Connection received from " + socket.getInetAddress().getHostName() + " : " + socket.getPort());
+
+
+                            }
+
+
+
+
+
+
+
+
+                            oos =null;
+                            ois = null;
 
                         }
+
+
+
+
+
 
 
 
@@ -280,4 +367,38 @@ public class AppNodes extends Node {
                 videoFiles.add(new VideoFile(f.getName(),channel,folder));
             }
         }*/
+
+    public void loadAvailableFiles(String folder, String channel){
+        File directory = new File(""+folder);
+        File[] contents = directory.listFiles();
+        if (contents == null){
+            System.out.println("DEN VRIKA TPT AFENTIKO");
+            return;
+        }
+        for ( File f : contents) {
+            if (f.getName().endsWith(".mp4")) {
+                //videoFiles.add(new VideoFile(f.getName(),channel,folder));
+            }
+        }
+
+    }
+
+    public static class Handler extends Thread{
+
+        Socket conn;
+
+        public Handler(Socket socket){
+            conn=socket;
+        }
+
+        @Override
+        public void run() {
+
+            System.out.println("Preparing to send video to bastard");
+
+
+
+        }
+    }
+
 }

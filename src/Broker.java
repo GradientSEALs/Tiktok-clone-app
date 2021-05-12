@@ -10,8 +10,11 @@ public class Broker extends Node {
     public ArrayList<String> brokerchannelnameslist = new ArrayList<>();
     public ArrayList<VideoFile> VideosPublisherConnection = new ArrayList<>();
 
-    public volatile HashMap<String,ArrayList<VideoFile>> channelContent = new HashMap<>();
 
+
+
+    public volatile HashMap<String,ArrayList<VideoFile>> channelContent = new HashMap<>();
+    public Map<String,Util.Pair<InetAddress,Integer>> VideoOwnerConnection = new HashMap<>();
     public Map<Integer,Util.Pair<String, Integer>> ListOfBrokers = new TreeMap<>();
     public HashSet<String> hashTags = new HashSet<>();
     public HashSet<String> channels = new HashSet<>();
@@ -20,7 +23,8 @@ public class Broker extends Node {
 
 
 
-
+    InetAddress owneraddress;
+    int ownerport;
     InetAddress ipaddress;
     int hashid;
     int port;
@@ -84,16 +88,15 @@ public class Broker extends Node {
                 while (!exit) {
 
                     byte choice = ois.readByte(); //we take the choice
-                    System.out.println(choice);
                     switch (choice) {
                         case 1: //register
                             String channelName = (String) ois.readObject();
                             System.out.println(channelName);
                             int channelHash = ois.readInt();
                             channelHash /= 3;
-                            System.out.println(hashid +"===="+ channelHash);
-                            for (int brokerID : ListOfBrokers.keySet()){
-                                if (channelHash < brokerID && brokerID == hashid){
+                            System.out.println(hashid + "====" + channelHash);
+                            for (int brokerID : ListOfBrokers.keySet()) {
+                                if (channelHash < brokerID && brokerID == hashid) {
                                     System.out.println("Writing true");
                                     oos.writeBoolean(true);
                                     oos.flush();
@@ -103,7 +106,7 @@ public class Broker extends Node {
                                     oos.writeObject(ListOfBrokers);
                                     oos.flush();
                                     break;
-                                }else if (channelHash < brokerID){
+                                } else if (channelHash < brokerID) {
                                     System.out.println("To next Broker");
                                     oos.writeBoolean(false);
                                     oos.flush();
@@ -114,7 +117,7 @@ public class Broker extends Node {
                                     oos.writeObject(ListOfBrokers);
                                     oos.flush();
                                     break;
-                                }else continue;
+                                } else continue;
                             }
                             oos.writeObject(ListOfBrokers);
                             oos.flush();
@@ -123,70 +126,94 @@ public class Broker extends Node {
                             Util.debug("Reading channel name and videoname");
                             channelName = (String) ois.readObject();
                             VideoFile video = (VideoFile) ois.readObject();
+                            VideosPublisherConnection.add(video);
                             String hashtag = (String) ois.readObject();
                             Util.debug("adding to map");
                             Util.debug(channelName);
-                            channelContent.computeIfAbsent(channelName,k -> new ArrayList<VideoFile>()).add(video);
+                            VideoOwnerConnection.put(video.getVideoName(),new Util.Pair<InetAddress,Integer>(conn.getLocalAddress(), conn.getPort()));
+                            channelContent.computeIfAbsent(channelName, k -> new ArrayList<VideoFile>()).add(video);
                             hashTags.add(hashtag);
                             Util.debug("Added hashtag to broker's hashtag");
-                            System.out.println(hashTags);
-
+                            channels.add(video.getChannelName());
+                            Util.debug("Added channel to broker's channel's");
                             oos.writeBoolean(true); //says to the AppNode that we were notified
                             oos.flush();
                             System.out.println("I just returned notify");
-                            /*Util.debug("Reading hashtag");
-                            String hashtag = (String) ois.readObject();
-                            Util.debug(hashtag);
-                            int hashtag_hash = Util.getModMd5(hashtag);
-                            hashtag_hash %= 3;
-                            boolean appropriate = false;
-                            for (int brokerID : ListOfBrokers.keySet()){
-                                if (hashtag_hash < brokerID && brokerID == hashid){
-                                    System.out.println("Compatible hashtag");
-                                    oos.writeBoolean(true);
-                                    oos.flush();
-                                    System.out.println("Adding to list");
-                                    hashTags.add(hashtag);
-                                    break;
-                                }else if (hashtag_hash < brokerID){
-                                    System.out.println("To next Broker");
-                                    oos.writeBoolean(false);
-                                    oos.flush();
-                                    oos.writeObject(ListOfBrokers.get(brokerID));
-                                    oos.flush();
-                                    System.out.println("Left");
-                                    break;
-                                }else continue;
-                            }*/
+
+
                             break;
                         case 3: //find a video or a channel and deliver the video
                             byte action = ois.readByte();
-                            if(action==1){
-                                ArrayList<String> videonames= new ArrayList<>();
-                                for(VideoFile v:getVideos()){
-                                    videonames.add(v.getVideoName());
-                                }
-                                oos.writeObject(videonames);
-                                oos.flush();
-                            }
-                            else if (action==2){
-                                ArrayList<String> hashtagnames= new ArrayList<>();
-                                for(String s:hashTags){
+                            System.out.println(action);
+                            if (action == 1) {
+                                ArrayList<String> hashtagnames = new ArrayList<>();
+                                for (String s : hashTags) {
                                     hashtagnames.add(s);
                                 }
                                 oos.writeObject(hashtagnames);
                                 oos.flush();
-                            }
-                            else{
-                                ArrayList<String> channelnames= new ArrayList<>();
-                                for(String s:channels){
+                            } else {
+                                ArrayList<String> channelnames = new ArrayList<>();
+                                for (String s : channels) {
                                     channelnames.add(s);
                                 }
                                 oos.writeObject(channelnames);
                                 oos.flush();
                             }
+
+
                             break;
                         case 4: //subscribe customer to a hashtag or channel
+                            break;
+
+                        case 5: //process of returning channels or hashtags requested by AppNodes
+
+                            String desired = (String) ois.readObject();
+                            HashSet<String> interestingvideos = new HashSet<>();
+                            for (VideoFile v : VideosPublisherConnection) {
+                                if (v.getChannelName().equals(desired) || v.associatedHashtags.contains(desired)) {
+                                    //checks if we want this video
+                                    interestingvideos.add(v.getVideoName());
+
+                                }
+
+                            }
+                            System.out.println(interestingvideos);
+                            oos.writeObject(interestingvideos);
+                            oos.flush();
+
+
+                            break;
+
+
+                        case 6: // process to send the video
+
+                            String filename = (String) ois.readObject();
+                            boolean exists = false;
+
+                            for(VideoFile v: VideosPublisherConnection){
+                                if(v.videoName.equals(filename)){
+                                    exists=true;
+                                    Util.Pair<InetAddress,Integer> contact = VideoOwnerConnection.get(v.videoName);
+                                     owneraddress = contact.item1;
+                                     ownerport = contact.item2;
+                                    break;
+                                }
+                            }
+                            oos.writeBoolean(exists);
+                            oos.flush();
+                            if(exists){
+                                Socket ownersocket = new Socket(owneraddress,ownerport);
+
+
+
+
+
+
+                            }
+
+
+
                             break;
                     }
                 }

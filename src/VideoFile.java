@@ -14,6 +14,7 @@ public class VideoFile implements Serializable {
     public AppNodes owner;
     @Serial
     private static final long serialVersionUID = -2723363051253966964L;
+
     public VideoFile(String videoName,String channelName,ArrayList<String> associatedHashtags, AppNodes owner){
         this.videoName = videoName;
         this.channelName = channelName;
@@ -21,10 +22,15 @@ public class VideoFile implements Serializable {
         this.owner = owner;
     }
 
-    public VideoFile(String videoName, String channelName,String path){
+    public VideoFile(String videoName, String channelName,String path, String[] hashtags){
         this.videoName = videoName;
         this.channelName = channelName;;
         this.path = path;
+        associatedHashtags = new ArrayList<>();
+        for(String s: hashtags){
+            associatedHashtags.add(s);
+        }
+
         /*this.videoDetails = new JSONObject();
         videoDetails.put("action","GET_VIDEO");
         videoDetails.put("videoName",videoName);
