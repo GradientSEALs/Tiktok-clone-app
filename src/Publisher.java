@@ -1,4 +1,5 @@
 import java.io.*;
+import java.net.ServerSocket;
 import java.util.*;
 import java.net.Socket;
 
@@ -9,25 +10,34 @@ public class Publisher extends Thread {
     Socket connection = null;
     ObjectOutputStream oos;
     ObjectInputStream ois;
-    Map<Integer, Util.Pair<String, Integer>> map;
+    String directory;
 
-    public Publisher(Socket connection, VideoFile video) {
-        this.connection = connection;
-        this.video = video;
+
+
+    public Publisher(Socket conn,String directory){
+        this.connection=conn;
+        this.directory=directory;
     }
 
     @Override
     public void run() {
+
         try {
-            push(video, connection);
-        } catch (IOException e) {
+            oos = new ObjectOutputStream(connection.getOutputStream());
+            ois = new ObjectInputStream(connection.getInputStream());
+
+            String videonamewanted = (String) ois.readObject();
+
+            System.out.println("I am in publisher Thread");
+
+
+
+
+        } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
-        try {
-            connection.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+
+
     }
 
     public void push(VideoFile videoFile, Socket consumer) throws IOException {

@@ -4,7 +4,6 @@
       <root url="jar://$PROJECT_DIR$/lib/java-json.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/tika-app-2.0.0-ALPHA.jar!/" />
     </CLASSES>
-    <JAVADOC />
     <SOURCES>
       <root url="jar://$PROJECT_DIR$/lib/java-json.jar!/" />
     </SOURCES>

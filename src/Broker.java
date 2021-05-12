@@ -11,10 +11,10 @@ public class Broker extends Node {
     public ArrayList<VideoFile> VideosPublisherConnection = new ArrayList<>();
 
 
-
+    public Util.Pair<String,Integer> contact;
 
     public volatile HashMap<String,ArrayList<VideoFile>> channelContent = new HashMap<>();
-    public Map<String,Util.Pair<InetAddress,Integer>> VideoOwnerConnection = new HashMap<>();
+    public Map<String,Util.Pair<String,Integer>> VideoOwnerConnection = new HashMap<>();
     public Map<Integer,Util.Pair<String, Integer>> ListOfBrokers = new TreeMap<>();
     public HashSet<String> hashTags = new HashSet<>();
     public HashSet<String> channels = new HashSet<>();
@@ -22,7 +22,7 @@ public class Broker extends Node {
     public HashMap<Integer,HashSet<String>> fellowBrokersInfo = new HashMap<>();
 
 
-
+    String channelname;
     InetAddress owneraddress;
     int ownerport;
     InetAddress ipaddress;
@@ -128,9 +128,11 @@ public class Broker extends Node {
                             VideoFile video = (VideoFile) ois.readObject();
                             VideosPublisherConnection.add(video);
                             String hashtag = (String) ois.readObject();
+                            String appip = (String) ois.readObject();
+                            int appport = (int) ois.readObject();
                             Util.debug("adding to map");
                             Util.debug(channelName);
-                            VideoOwnerConnection.put(video.getVideoName(),new Util.Pair<InetAddress,Integer>(conn.getLocalAddress(), conn.getPort()));
+                            VideoOwnerConnection.put(video.getVideoName(),new Util.Pair<String,Integer>(appip, appport));
                             channelContent.computeIfAbsent(channelName, k -> new ArrayList<VideoFile>()).add(video);
                             hashTags.add(hashtag);
                             Util.debug("Added hashtag to broker's hashtag");
@@ -142,9 +144,10 @@ public class Broker extends Node {
 
 
                             break;
-                        case 3: //find a video or a channel and deliver the video
+                        case 3: //returns hashtags and channelnames
                             byte action = ois.readByte();
-                            System.out.println(action);
+                            channelname = (String) ois.readObject();
+
                             if (action == 1) {
                                 ArrayList<String> hashtagnames = new ArrayList<>();
                                 for (String s : hashTags) {
@@ -155,7 +158,9 @@ public class Broker extends Node {
                             } else {
                                 ArrayList<String> channelnames = new ArrayList<>();
                                 for (String s : channels) {
-                                    channelnames.add(s);
+                                    if(!s.equals(channelname)) {
+                                        channelnames.add(s);
+                                    }
                                 }
                                 oos.writeObject(channelnames);
                                 oos.flush();
@@ -169,9 +174,11 @@ public class Broker extends Node {
                         case 5: //process of returning channels or hashtags requested by AppNodes
 
                             String desired = (String) ois.readObject();
+                            channelname = (String) ois.readObject();
                             HashSet<String> interestingvideos = new HashSet<>();
                             for (VideoFile v : VideosPublisherConnection) {
-                                if (v.getChannelName().equals(desired) || v.associatedHashtags.contains(desired)) {
+                                if ((v.getChannelName().equals(desired) || v.associatedHashtags.contains(desired))
+                                        && !v.getChannelName().equals(channelname)) {
                                     //checks if we want this video
                                     interestingvideos.add(v.getVideoName());
 
@@ -187,39 +194,32 @@ public class Broker extends Node {
 
 
                         case 6: // process to send the video
-
+                            System.out.println("I am in 6");
                             String filename = (String) ois.readObject();
+                            channelname = (String) ois.readObject();
                             boolean exists = false;
 
                             for(VideoFile v: VideosPublisherConnection){
-                                if(v.videoName.equals(filename)){
+                                if(v.videoName.equals(filename) && !v.getChannelName().equals(channelname)){
+                                    //checks if video exists and if the publisher is the AppNode asking
                                     exists=true;
-                                    Util.Pair<InetAddress,Integer> contact = VideoOwnerConnection.get(v.videoName);
-                                     owneraddress = contact.item1;
-                                     ownerport = contact.item2;
-                                    break;
+                                    contact = VideoOwnerConnection.get(v.videoName);
+                                    System.out.println("Found file");
+                                     break;
                                 }
                             }
                             oos.writeBoolean(exists);
                             oos.flush();
-                            if(exists){
-                                Socket ownersocket = new Socket(owneraddress,ownerport);
 
-
-
-
-
-
-                            }
-
-
-
+                            oos.writeObject(contact);
+                            oos.flush();
+                            System.out.println("Gave all Information to AppNode for download");
                             break;
                     }
                 }
             }
             catch (EOFException e){
-                System.out.println("Exeis EOFE");
+                System.out.println("EOFException");
             }
             catch(ClassNotFoundException | IOException e){
                 e.printStackTrace();

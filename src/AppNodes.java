@@ -1,7 +1,9 @@
 import org.apache.commons.lang3.ObjectUtils;
 import org.json.JSONException;
+import org.objectweb.asm.Handle;
 
 import java.io.*;
+import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -20,20 +22,29 @@ public class AppNodes extends Node {
     public String name;
     Publisher pr = null ;
     Consumer cr = null;
+    public String folder;
     volatile ArrayList<VideoFile> videoFiles = new ArrayList<>();
     Map<Integer,Util.Pair<String, Integer>> map;
+    Handler handler = null;
+    String serverip;
+    int serverport;
+
 
     public static void main(String args[]) {
 
         try {
-            new AppNodes().startService();
+            new AppNodes().startService(args[0], args[1], args[2]);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public void startService() throws IOException {
+    public void startService(String fn, String ip2, String port2) throws IOException {
 
+        serverip = ip2;
+        serverport = Integer.parseInt(port2);
+        folder = fn;
+        System.out.println(folder);
         boolean loginFlag = false;
         skr = new Scanner(System.in);
         Random r = new Random();
@@ -42,20 +53,20 @@ public class AppNodes extends Node {
          //Ypotheto oti tha yparxei enas broker pou tha einai me gnosto port eksarxis kai tha kanei handle username passwords kai tha dinei ta ips ton allwn broker
 
         try {
-            AppServer = new ServerSocket(port);
+
+            AppServer = new ServerSocket(serverport);
+            handler = new Handler(AppServer,folder);
+            handler.start();
+
             InetAddress brokerIP = InetAddress.getLocalHost();
             int brokerPort = 4000;
             brokerSocket = new Socket(brokerIP,brokerPort);
             ois = new ObjectInputStream(brokerSocket.getInputStream());
             oos = new ObjectOutputStream(brokerSocket.getOutputStream());
 
+
+
             while(whileFlag){
-
-                // Initiates a publisher handler for each connection received
-                Socket socket = AppServer.accept();
-                new Handler(socket).start();
-
-
 
 
 
@@ -72,6 +83,7 @@ public class AppNodes extends Node {
                     System.out.println("2. Publish A Video "); //push function
                     System.out.println("3. Find A Video "); //pull function
                     System.out.println("4. Subscribe to a Hashtag or a Channel"); //pull function
+                    System.out.println("5 Exit");
                     System.out.println("Please pick the service you want");
                     System.out.println("*********");
                 }
@@ -110,12 +122,11 @@ public class AppNodes extends Node {
                     case 2: //publish video
 
 
-                        /*System.out.println("Please choose your directory");
-                        String folder = skr.nextLine();*/
-                        String folder = "dir1";
-                        /*loadAvailableFiles(folder, channelName);
+                        /*loadAvailableFiles(folder, name);
                         Scanner skr = new Scanner(System.in);
-                        videoFiles.forEach((v) -> System.out.println(v));*/
+                        videoFiles.forEach((v) -> System.out.println(v));
+                        System.out.println("Please select video to publish");
+                        String filename = skr.nextLine();*/
 
 
 
@@ -133,7 +144,7 @@ public class AppNodes extends Node {
                                 if (hashtag_hash < brokerID) {
                                     try {
                                         brokerSocket = new Socket(map.get(brokerID).item1, map.get(brokerID).item2);
-                                        notify(brokerSocket, new VideoFile(fileName, name, folder, hashtags), hash);
+                                        notify(brokerSocket, new VideoFile(fileName, name, folder, hashtags), hash, serverip, serverport);
 
 
                                     } catch (IOException e) {
@@ -187,6 +198,8 @@ public class AppNodes extends Node {
                                 oos.flush();
                                 oos.writeByte(action); //gives action to broker
                                 oos.flush();
+                                oos.writeObject(name);
+                                oos.flush();
 
                                 ArrayList<String> givenItems = (ArrayList<String>) ois.readObject();
 
@@ -222,6 +235,8 @@ public class AppNodes extends Node {
                                         oos.flush();
                                         oos.writeObject(s);
                                         oos.flush();
+                                        oos.writeObject(name);
+                                        oos.flush();
 
                                         interestingvideos = (HashSet<String>) ois.readObject();
                                         //receives interesting videos for display
@@ -242,7 +257,7 @@ public class AppNodes extends Node {
                         System.out.println("These are the associated videos");
                         System.out.println(finalinterestingvideos);
                         System.out.println("Please pick one");
-                        String videoname = skr.nextLine();
+                        String videoname = skr.nextLine(); //works
 
                         for (int brokerID : map.keySet()) { //searches appropriate broker to send the query
                             brokerSocket = new Socket(map.get(brokerID).item1, map.get(brokerID).item2);
@@ -253,49 +268,43 @@ public class AppNodes extends Node {
                             oos.flush();
                             oos.writeObject(videoname);
                             oos.flush();
+                            oos.writeObject(name);
+                            oos.flush();
+
 
                             boolean exists = ois.readBoolean();
-
+                            Util.Pair<String,Integer> contact = ( Util.Pair<String,Integer>) ois.readObject();
                             if(exists){
-                                Socket socket2 = AppServer.accept();
-                                System.out.println("Video Owner connected");
-                                System.out.println("Connection received from " + socket.getInetAddress().getHostName() + " : " + socket.getPort());
+                                try {
+                                    System.out.println(contact.item1 + " " + contact.item2);
+                                    Socket crsocket = new Socket(contact.item1, contact.item2);
+                                    Consumer cr = new Consumer(crsocket,videoname);
+                                    cr.start();
+                                }
+                                catch(ConnectException e){
+                                    System.out.println("Could not connect to Appnode");
+                                }
 
 
                             }
-
-
-
-
-
-
-
-
+                            else{
+                                System.out.println("Did not find it at this broker");
+                            }
                             oos =null;
                             ois = null;
-
                         }
-
-
-
-
-
-
-
-
-
-                       /* cr = new Consumer(port);
-                        cr.run();*/
-
-
                         break;
+
 
                     case 4: //declare intention to subscribe to a channel or hashtag
                         break;
+                    case 5: //closes the appNode
+                        whileFlag=false;
+                        break;
                 }
-                //pr.join();
             }
-        } catch (IOException | ClassNotFoundException e) {
+            handler.join();
+        } catch (IOException | ClassNotFoundException | InterruptedException e) {
             e.printStackTrace();
         }
     }
@@ -327,7 +336,7 @@ public class AppNodes extends Node {
             e.printStackTrace();
         }
     }
-    public boolean notify(Socket broker, VideoFile video,String hashtag) throws IOException {
+    public boolean notify(Socket broker, VideoFile video,String hashtag,String serverip,int serverport) throws IOException {
         boolean notified = false;
         //Util.debug("ton pairneis");
         if (ois == null && oos == null){
@@ -343,6 +352,10 @@ public class AppNodes extends Node {
         oos.writeObject(video); //Video
         oos.flush();
         oos.writeObject(hashtag); //hashtag
+        oos.flush();
+        oos.writeObject(serverip);
+        oos.flush();
+        oos.writeObject(serverport);
         oos.flush();
 
         //Util.debug("Reading response");
@@ -384,21 +397,42 @@ public class AppNodes extends Node {
     }
 
     public static class Handler extends Thread{
+        ServerSocket server;
+        String directory;
 
-        Socket conn;
+        public Handler(ServerSocket server,String directory){
+            this.server = server;
+            this.directory =directory;
+        }
 
-        public Handler(Socket socket){
-            conn=socket;
+        public Handler(ServerSocket server){
+            this.server = server;
+
         }
 
         @Override
         public void run() {
 
-            System.out.println("Preparing to send video to bastard");
+            try {
+                for (;;) { //infinite for loop
+                    Socket conn = server.accept();
+                    System.out.println("New AppNode has connected");
+                    Publisher pr = new Publisher(conn,directory);
+                    System.out.println("New Publisher Thread Initialized");
+                    pr.start();
+                }
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
 
 
 
         }
     }
+
+
+
+
 
 }
