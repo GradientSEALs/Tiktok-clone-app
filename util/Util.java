@@ -31,11 +31,27 @@ public class Util {
         return null;
     }
 
+    //============= OVERLOADED FOR STRING PATH INPUT ===========================//
+    public static byte[] loadVideoFromDiskToRam(String videoFile){
+        try{
+            File file = new File(""+videoFile);
+            FileInputStream fis = new FileInputStream(file);
+            byte[] fileData = new byte[(int)file.length()];
+            fis.read(fileData);
+            return fileData;
+        }catch (FileNotFoundException e){
+            System.err.println("File not found exception for selected song");
+        }catch (IOException e){
+            System.err.println("IOException from loadSongFromDiskToRam() in util package");
+        }
+        return null;
+    }
+
     /**
      * Splits a file's data into smaller parts
      */
     public static List<byte[]> chunkifyFile(byte[] data){
-        int chunkSize = 1024*16;
+        int chunkSize = 512*16;
         return chunkifyFile(data, chunkSize);
     }
 

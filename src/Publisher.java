@@ -30,7 +30,7 @@ public class Publisher extends Thread {
 
             System.out.println("I am in publisher Thread");
 
-
+            push(video,connection);
 
 
         } catch (IOException | ClassNotFoundException e) {
@@ -42,6 +42,17 @@ public class Publisher extends Thread {
 
     public void push(VideoFile videoFile, Socket consumer) throws IOException {
         byte[] videoData = Util.loadVideoFromDiskToRam(videoFile);
+        List<byte[]> chunckedVideo = Util.chunkifyFile(videoData);
+        oos = (ObjectOutputStream) consumer.getOutputStream();
+        for (byte[] data : chunckedVideo) {
+            oos.write(data);
+            oos.flush();
+        }
+    }
+
+    //============= OVERLOADED FOR STRING PATH INPUT ===========================//
+    public void push(String path, Socket consumer) throws IOException {
+        byte[] videoData = Util.loadVideoFromDiskToRam(path);
         List<byte[]> chunckedVideo = Util.chunkifyFile(videoData);
         oos = (ObjectOutputStream) consumer.getOutputStream();
         for (byte[] data : chunckedVideo) {
