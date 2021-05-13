@@ -10,9 +10,9 @@ public class Broker extends Node {
     public ArrayList<String> brokerchannelnameslist = new ArrayList<>();
     public ArrayList<VideoFile> VideosPublisherConnection = new ArrayList<>();
 
-
+    public Map<String,ArrayList<String>> channelSubs = new HashMap<>();
     public Util.Pair<String,Integer> contact;
-
+    public Map<String,Util.Pair<String,Integer>> ChannelServerInfo = new HashMap<>();
     public volatile HashMap<String,ArrayList<VideoFile>> channelContent = new HashMap<>();
     public Map<String,Util.Pair<String,Integer>> VideoOwnerConnection = new HashMap<>();
     public Map<Integer,Util.Pair<String, Integer>> ListOfBrokers = new TreeMap<>();
@@ -97,23 +97,22 @@ public class Broker extends Node {
                             System.out.println(hashid + "====" + channelHash);
                             for (int brokerID : ListOfBrokers.keySet()) {
                                 if (channelHash < brokerID && brokerID == hashid) {
-                                    System.out.println("Writing true");
                                     oos.writeBoolean(true);
                                     oos.flush();
-                                    System.out.println("Adding to list");
+                                    System.out.println("Adding to list the Channel name");
                                     brokerchannelnameslist.add(channelName);
                                     System.out.println(ListOfBrokers.keySet().toString());
                                     oos.writeObject(ListOfBrokers);
                                     oos.flush();
                                     break;
                                 } else if (channelHash < brokerID) {
-                                    System.out.println("To next Broker");
+                                    System.out.println("To the next Broker");
                                     oos.writeBoolean(false);
                                     oos.flush();
                                     oos.writeObject(ListOfBrokers.get(brokerID));
                                     oos.flush();
                                     _stop();
-                                    System.out.println("Left");
+                                    System.out.println("AppNode has left the broker");
                                     oos.writeObject(ListOfBrokers);
                                     oos.flush();
                                     break;
@@ -130,8 +129,8 @@ public class Broker extends Node {
                             String hashtag = (String) ois.readObject();
                             String appip = (String) ois.readObject();
                             int appport = (int) ois.readObject();
-                            Util.debug("adding to map");
                             Util.debug(channelName);
+                            ChannelServerInfo.put(channelName,new Util.Pair<String,Integer>(appip, appport) );
                             VideoOwnerConnection.put(video.getVideoName(),new Util.Pair<String,Integer>(appip, appport));
                             channelContent.computeIfAbsent(channelName, k -> new ArrayList<VideoFile>()).add(video);
                             hashTags.add(hashtag);
@@ -140,7 +139,7 @@ public class Broker extends Node {
                             Util.debug("Added channel to broker's channel's");
                             oos.writeBoolean(true); //says to the AppNode that we were notified
                             oos.flush();
-                            System.out.println("I just returned notify");
+
 
 
                             break;
@@ -168,7 +167,29 @@ public class Broker extends Node {
 
 
                             break;
-                        case 4: //subscribe customer to a hashtag or channel
+                        case 4: //subscribe customer to a channel
+
+                            channelname = (String) ois.readObject();
+
+                            ArrayList<String> channelnames = new ArrayList<>();
+                            for (String s : channels) {
+                                if(!s.equals(channelname)) {
+                                    channelnames.add(s);
+                                }
+                            }
+                            oos.writeObject(channelnames);
+                            oos.flush();
+
+                        case 7: //gets the channelname that AppNode wants to subscribe
+                            String channame = (String) ois.readObject();
+                            String subchannel = (String) ois.readObject();
+
+
+
+
+
+
+
                             break;
 
                         case 5: //process of returning channels or hashtags requested by AppNodes
@@ -194,7 +215,6 @@ public class Broker extends Node {
 
 
                         case 6: // process to send the video
-                            System.out.println("I am in 6");
                             String filename = (String) ois.readObject();
                             channelname = (String) ois.readObject();
                             boolean exists = false;
@@ -213,7 +233,6 @@ public class Broker extends Node {
 
                             oos.writeObject(contact);
                             oos.flush();
-                            System.out.println("Gave all Information to AppNode for download");
                             break;
                     }
                 }

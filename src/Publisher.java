@@ -28,7 +28,6 @@ public class Publisher extends Thread {
 
             String videonamewanted = (String) ois.readObject(); //video name
 
-            System.out.println("I am in publisher Thread");
 
             String path = directory + "/" + videonamewanted;
 

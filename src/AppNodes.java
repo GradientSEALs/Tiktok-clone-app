@@ -80,9 +80,9 @@ public class AppNodes extends Node {
                 else {
                     System.out.println("*********");
                     System.out.println("Welcome to Tik Tok");
-                    System.out.println("2. Publish A Video "); //push function
-                    System.out.println("3. Find A Video "); //pull function
-                    System.out.println("4. Subscribe to a Hashtag or a Channel"); //pull function
+                    System.out.println("2. Publish A Video ");
+                    System.out.println("3. Find A Video ");
+                    System.out.println("4. Subscribe to a Channel");
                     System.out.println("5 Exit");
                     System.out.println("Please pick the service you want");
                     System.out.println("*********");
@@ -135,7 +135,6 @@ public class AppNodes extends Node {
                         System.out.println("Please give us the video Hashtags with a space in between");
                         String hashtag = skr.nextLine();
                         String[] hashtags = hashtag.split(" ");
-                        System.out.println(hashtag.length());
 
                         for (String hash : hashtags) {
 
@@ -170,7 +169,6 @@ public class AppNodes extends Node {
                         //pr.start();
                         //pr.start();
                         //pr.join();
-                        System.out.println("Finished case 2 from appnodes");
                         brokerSocket.close();
                         break;
 
@@ -258,7 +256,7 @@ public class AppNodes extends Node {
                         System.out.println("These are the associated videos");
                         System.out.println(finalinterestingvideos);
                         System.out.println("Please pick one");
-                        String videoname = skr.nextLine(); //works
+                        String videoname = skr.nextLine();
 
                         for (int brokerID : map.keySet()) { //searches appropriate broker to send the query
                             brokerSocket = new Socket(map.get(brokerID).item1, map.get(brokerID).item2);
@@ -297,7 +295,64 @@ public class AppNodes extends Node {
                         break;
 
 
-                    case 4: //declare intention to subscribe to a channel or hashtag
+                    case 4: //declare intention to subscribe to a channel
+
+                        HashSet<String> retrievedItems2 = new HashSet<>(); //Hashset were hashtags,video names and channelnames will be displayed
+                        for (int brokerID : map.keySet()) {
+
+                            try {
+                                brokerSocket = new Socket(map.get(brokerID).item1, map.get(brokerID).item2);
+                                ois = new ObjectInputStream(brokerSocket.getInputStream());
+                                oos = new ObjectOutputStream(brokerSocket.getOutputStream());
+                                oos.writeByte(4); //gives choice to the broker
+                                oos.flush();
+                                oos.writeObject(name);
+                                oos.flush();
+
+                                ArrayList<String> givenItems = (ArrayList<String>) ois.readObject();
+
+                                for(String s: givenItems){
+                                    retrievedItems2.add(s);
+                                }
+
+
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+
+                        System.out.println("The Items you asked are :");
+                        System.out.println(retrievedItems2); //prints all channels registered except your own channel
+                        oos = null;
+                        ois = null;
+
+                        System.out.println("Pick the channel you want to subscribe to: ");
+                        String subchannel = skr.nextLine();
+
+                        for (int brokerID : map.keySet()) {
+                            try {
+                                brokerSocket = new Socket(map.get(brokerID).item1, map.get(brokerID).item2);
+                                ois = new ObjectInputStream(brokerSocket.getInputStream());
+                                oos = new ObjectOutputStream(brokerSocket.getOutputStream());
+                                oos.writeByte(7); //gives choice to the broker
+                                oos.flush();
+                                oos.writeObject(name);
+                                oos.flush();
+                                oos.writeObject(subchannel);
+                                oos.flush();
+
+
+
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+
+
+                        }
+
+
+
+
                         break;
                     case 5: //closes the appNode
                         whileFlag=false;

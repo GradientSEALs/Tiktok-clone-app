@@ -45,7 +45,7 @@ public Consumer(Socket conn, String videoname,String folder) {
             }
             out.flush();
 
-            System.out.println("Finished receiving the video");
+            System.out.println("Finished video receiving");
 
 
         } catch (IOException e) {
