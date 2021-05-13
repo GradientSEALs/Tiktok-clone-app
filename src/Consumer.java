@@ -16,12 +16,14 @@ public class Consumer extends Thread {
     ObjectInputStream ois;
     String videoname;
     Socket conn;
+    String folder;
 
 
-public Consumer(Socket conn, String videoname) {
+public Consumer(Socket conn, String videoname,String folder) {
 
     this.conn = conn;
     this.videoname=videoname;
+    this.folder=folder;
 }
 
 
@@ -32,20 +34,33 @@ public Consumer(Socket conn, String videoname) {
             ois = new ObjectInputStream(conn.getInputStream());
             oos = new ObjectOutputStream(conn.getOutputStream());
             oos.writeObject(videoname);
-            out = new FileOutputStream("dir1"+videoname);
+            out = new FileOutputStream(folder+"/"+videoname);
             oos.flush();
 
-            byte[] bytes = new byte[512*16];
+            byte[] bytes = new byte[512];
             int count = 0;
             while ((count=ois.read(bytes)) > 0 ) {
                 out.write(bytes);
-            }
 
-            System.out.println("I am in Consumer Thread");
+            }
+            out.flush();
+
+            System.out.println("Finished receiving the video");
 
 
         } catch (IOException e) {
             e.printStackTrace();
+        }
+        finally{
+
+            try {
+                ois.close();
+                oos.close();
+                out.close();
+                conn.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
 
 

@@ -128,9 +128,10 @@ public class AppNodes extends Node {
                         System.out.println("Please select video to publish");
                         String filename = skr.nextLine();*/
 
+                        System.out.println("Pick the file that you want to upload");
 
+                        String fileName = skr.nextLine();
 
-                        String fileName = "tsimpouki.mp4";
                         System.out.println("Please give us the video Hashtags with a space in between");
                         String hashtag = skr.nextLine();
                         String[] hashtags = hashtag.split(" ");
@@ -278,7 +279,7 @@ public class AppNodes extends Node {
                                 try {
                                     System.out.println(contact.item1 + " " + contact.item2);
                                     Socket crsocket = new Socket(contact.item1, contact.item2);
-                                    Consumer cr = new Consumer(crsocket,videoname);
+                                    Consumer cr = new Consumer(crsocket,videoname,folder);
                                     cr.start();
                                 }
                                 catch(ConnectException e){

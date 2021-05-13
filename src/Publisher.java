@@ -26,15 +26,32 @@ public class Publisher extends Thread {
             oos = new ObjectOutputStream(connection.getOutputStream());
             ois = new ObjectInputStream(connection.getInputStream());
 
-            String videonamewanted = (String) ois.readObject();
+            String videonamewanted = (String) ois.readObject(); //video name
 
             System.out.println("I am in publisher Thread");
 
-            push(video,connection);
+            String path = directory + "/" + videonamewanted;
+
+            push(path,connection);
+
+            System.out.println("Finished video sending");
 
 
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
+        }
+        finally {
+            try{
+                oos.close();
+                ois.close();
+                connection.close();
+
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+            }
+
+
         }
 
 
@@ -43,7 +60,6 @@ public class Publisher extends Thread {
     public void push(VideoFile videoFile, Socket consumer) throws IOException {
         byte[] videoData = Util.loadVideoFromDiskToRam(videoFile);
         List<byte[]> chunckedVideo = Util.chunkifyFile(videoData);
-        oos = (ObjectOutputStream) consumer.getOutputStream();
         for (byte[] data : chunckedVideo) {
             oos.write(data);
             oos.flush();
@@ -54,10 +70,10 @@ public class Publisher extends Thread {
     public void push(String path, Socket consumer) throws IOException {
         byte[] videoData = Util.loadVideoFromDiskToRam(path);
         List<byte[]> chunckedVideo = Util.chunkifyFile(videoData);
-        oos = (ObjectOutputStream) consumer.getOutputStream();
         for (byte[] data : chunckedVideo) {
             oos.write(data);
-            oos.flush();
+
         }
+        oos.flush();
     }
 }

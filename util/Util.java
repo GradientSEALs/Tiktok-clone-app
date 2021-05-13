@@ -51,7 +51,7 @@ public class Util {
      * Splits a file's data into smaller parts
      */
     public static List<byte[]> chunkifyFile(byte[] data){
-        int chunkSize = 512*16;
+        int chunkSize = 512;
         return chunkifyFile(data, chunkSize);
     }
 
