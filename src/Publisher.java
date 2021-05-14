@@ -14,17 +14,18 @@ public class Publisher extends Thread {
 
 
 
-    public Publisher(Socket conn,String directory){
+    public Publisher(Socket conn,String directory,ObjectOutputStream oos, ObjectInputStream ois){
         this.connection=conn;
         this.directory=directory;
+        this.oos =oos;
+        this.ois = ois;
     }
 
     @Override
     public void run() {
 
         try {
-            oos = new ObjectOutputStream(connection.getOutputStream());
-            ois = new ObjectInputStream(connection.getInputStream());
+
 
             String videonamewanted = (String) ois.readObject(); //video name
 

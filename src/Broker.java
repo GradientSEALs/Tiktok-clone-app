@@ -130,15 +130,54 @@ public class Broker extends Node {
                             String appip = (String) ois.readObject();
                             int appport = (int) ois.readObject();
                             Util.debug(channelName);
-                            ChannelServerInfo.put(channelName,new Util.Pair<String,Integer>(appip, appport) );
+
                             VideoOwnerConnection.put(video.getVideoName(),new Util.Pair<String,Integer>(appip, appport));
-                            channelContent.computeIfAbsent(channelName, k -> new ArrayList<VideoFile>()).add(video);
+                            boolean contains = channelContent.containsKey(channelName);
+                            System.out.println("Starting to add channel content");
+                            if (!contains)
+                                channelContent.put(channelName, new ArrayList<VideoFile>());
+                            channelContent.get(channelName).add(video);
                             hashTags.add(hashtag);
                             Util.debug("Added hashtag to broker's hashtag");
                             channels.add(video.getChannelName());
                             Util.debug("Added channel to broker's channel's");
                             oos.writeBoolean(true); //says to the AppNode that we were notified
                             oos.flush();
+                            break;
+
+                        case 8:
+                            /** Process to send videos to subscribers  **/
+                            video = (VideoFile) ois.readObject();
+                            channelName = (String) ois.readObject();
+
+                            channelSubs.computeIfAbsent(channelName,k->new ArrayList<>());
+                            for (String channel : channelSubs.get(channelName)) {
+                                System.out.println(channel);
+                                Util.Pair<String, Integer> contact2 = ChannelServerInfo.get(channel);
+                                Socket notification = new Socket(contact2.item1, contact2.item2);
+                                ObjectOutputStream oos2 = new ObjectOutputStream(notification.getOutputStream());
+                                oos2.writeByte(2);
+                                oos2.flush();
+                                oos2.writeObject(video.getVideoName());
+                                oos2.flush();
+                                Util.Pair<String, Integer> contact3 = ChannelServerInfo.get(channelName);
+                                oos2.writeObject(contact3);
+                                oos2.flush();
+                                System.out.println("Finished sending publisher connection info to subscriber");
+                            }
+
+
+                            break;
+
+
+                        case 9:
+                            String name =(String) ois.readObject();
+                            appip = (String) ois.readObject();
+                            int apport = (int) ois.readObject();
+                            ChannelServerInfo.computeIfAbsent(name,k->new Util.Pair<String,Integer>("",0));
+                            ChannelServerInfo.put(name,new Util.Pair<String,Integer>(appip, apport));
+                            System.out.println("Inserted contact information");
+
 
 
 
@@ -179,13 +218,21 @@ public class Broker extends Node {
                             }
                             oos.writeObject(channelnames);
                             oos.flush();
+                            break;
 
                         case 7: //gets the channelname that AppNode wants to subscribe
-                            String channame = (String) ois.readObject();
-                            String subchannel = (String) ois.readObject();
+                            String channame = (String) ois.readObject(); //channelname giving the order
+                            String subchannel = (String) ois.readObject(); //channel that we want to sub
+
+                            boolean contains2 = channelSubs.containsKey(subchannel);
+
+                            if (!contains2){
+                                channelSubs.put(subchannel, new ArrayList<String>());}
+                            channelSubs.get(subchannel).add(channame);
 
 
-
+                            System.out.println("Subscribition complete");
+                            System.out.println(channelSubs);
 
 
 

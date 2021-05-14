@@ -19,11 +19,13 @@ public class Consumer extends Thread {
     String folder;
 
 
-public Consumer(Socket conn, String videoname,String folder) {
+public Consumer(Socket conn, String videoname,String folder,ObjectOutputStream oos, ObjectInputStream ois) {
 
     this.conn = conn;
     this.videoname=videoname;
     this.folder=folder;
+    this.oos = oos;
+    this.ois = ois;
 }
 
 
@@ -31,8 +33,8 @@ public Consumer(Socket conn, String videoname,String folder) {
     public void run() {
 
         try {
-            ois = new ObjectInputStream(conn.getInputStream());
-            oos = new ObjectOutputStream(conn.getOutputStream());
+
+
             oos.writeObject(videoname);
             out = new FileOutputStream(folder+"/"+videoname);
             oos.flush();

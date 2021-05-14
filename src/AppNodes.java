@@ -117,16 +117,30 @@ public class AppNodes extends Node {
                             loginFlag = register(brokerSocket,answer);
                         }
                         map = (Map<Integer,Util.Pair<String, Integer>>) ois.readObject(); // broker info
-                        brokerSocket.close();
+
+                        for(int brokerID: map.keySet()){ //putting appnode contact info in every broker
+                            brokerSocket = new Socket(map.get(brokerID).item1, map.get(brokerID).item2);
+                            ois = new ObjectInputStream(brokerSocket.getInputStream());
+                            oos = new ObjectOutputStream(brokerSocket.getOutputStream());
+                            oos.writeByte(9);
+                            oos.flush();
+                            oos.writeObject(name);
+                            oos.flush();
+                            oos.writeObject(serverip);
+                            oos.flush();
+                            oos.writeObject(serverport);
+                            oos.flush();
+                        }
+
+
                         break;
                     case 2: //publish video
 
 
                         /*loadAvailableFiles(folder, name);
                         Scanner skr = new Scanner(System.in);
-                        videoFiles.forEach((v) -> System.out.println(v));
-                        System.out.println("Please select video to publish");
-                        String filename = skr.nextLine();*/
+                        videoFiles.forEach((v) -> System.out.println(v));*/
+
 
                         System.out.println("Pick the file that you want to upload");
 
@@ -275,10 +289,17 @@ public class AppNodes extends Node {
                             Util.Pair<String,Integer> contact = ( Util.Pair<String,Integer>) ois.readObject();
                             if(exists){
                                 try {
-                                    System.out.println(contact.item1 + " " + contact.item2);
+
                                     Socket crsocket = new Socket(contact.item1, contact.item2);
-                                    Consumer cr = new Consumer(crsocket,videoname,folder);
+                                    oos = new ObjectOutputStream(crsocket.getOutputStream());//problem
+                                    ois = new ObjectInputStream(crsocket.getInputStream());
+                                    oos.writeByte(1);//problem
+                                    oos.flush();
+                                    Consumer cr = new Consumer(crsocket,videoname,folder,oos,ois);
                                     cr.start();
+                                    oos =null;
+                                    ois = null;
+                                    break;
                                 }
                                 catch(ConnectException e){
                                     System.out.println("Could not connect to Appnode");
@@ -343,13 +364,15 @@ public class AppNodes extends Node {
 
 
 
+
+
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
 
 
                         }
-
+                        System.out.println("You successfully subscribed to: "+subchannel);
 
 
 
@@ -368,13 +391,13 @@ public class AppNodes extends Node {
         oos.writeByte(answer); //sending choice to a random broker
         oos.flush();
         int hash = Util.getModMd5(name);
-        System.out.println(Util.getModMd5(name));
+
         try{
             oos.writeObject(name);
             oos.flush();
             oos.writeInt(hash);
             oos.flush();
-            System.out.println("1");
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -416,6 +439,12 @@ public class AppNodes extends Node {
 
         //Util.debug("Reading response");
         notified = ois.readBoolean();
+        oos.writeByte(8);
+        oos.flush();
+        oos.writeObject(video); //Video
+        oos.flush();
+        oos.writeObject(name);
+        oos.flush();
         return notified;
     }
 
@@ -473,14 +502,38 @@ public class AppNodes extends Node {
                 for (;;) { //infinite for loop
                     Socket conn = server.accept();
                     System.out.println("New AppNode has connected");
-                    Publisher pr = new Publisher(conn,directory);
-                    System.out.println("New Publisher Thread Initialized");
-                    pr.start();
+                    ObjectInputStream ois = new ObjectInputStream(conn.getInputStream());
+                    ObjectOutputStream oos = new ObjectOutputStream(conn.getOutputStream());
+                    byte action = ois.readByte(); //problem
+
+                    if(action == 1) { //sending video to established connection
+                        Publisher pr = new Publisher(conn, directory,oos,ois);
+                        System.out.println("New Publisher Thread Initialized");
+                        pr.start();
+                    }
+                    else if(action ==2){ //case where broker notifies subscriber to go ask for the video from the publisher
+                            //receives info from broker
+                            //connects with publisher and gives action
+                        String videoname = (String) ois.readObject();
+                        Util.Pair<String,Integer> contact = (Util.Pair<String,Integer>) ois.readObject();
+                        System.out.println("Received publisher connection information");
+                        Socket crsocket = new Socket(contact.item1, contact.item2);
+                        oos = new ObjectOutputStream(crsocket.getOutputStream());
+                        ois = new ObjectInputStream(crsocket.getInputStream());
+                        oos.writeByte(1);
+                        oos.flush();
+                        Consumer cr = new Consumer(crsocket,videoname,directory,oos,ois);
+                        cr.start();
+
+
+                    }
+
                 }
 
-            } catch (IOException e) {
+            } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
             }
+
 
 
 
