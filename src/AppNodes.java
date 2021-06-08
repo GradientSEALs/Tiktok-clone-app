@@ -524,8 +524,6 @@ public class AppNodes extends Node {
                         oos.flush();
                         Consumer cr = new Consumer(crsocket,videoname,directory,oos,ois);
                         cr.start();
-
-
                     }
 
                 }
