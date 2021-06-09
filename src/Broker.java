@@ -102,8 +102,8 @@ public class Broker extends Node {
                                     System.out.println("Adding to list the Channel name");
                                     brokerchannelnameslist.add(channelName);
                                     System.out.println(ListOfBrokers.keySet().toString());
-                                    oos.writeObject(ListOfBrokers);
-                                    oos.flush();
+                                    //oos.writeObject(ListOfBrokers);
+                                    //oos.flush();
                                     break;
                                 } else if (channelHash < brokerID) {
                                     System.out.println("To the next Broker");
@@ -113,8 +113,8 @@ public class Broker extends Node {
                                     oos.flush();
                                     _stop();
                                     System.out.println("AppNode has left the broker");
-                                    oos.writeObject(ListOfBrokers);
-                                    oos.flush();
+                                    //oos.writeObject(ListOfBrokers);
+                                    //oos.flush();
                                     break;
                                 } else continue;
                             }
