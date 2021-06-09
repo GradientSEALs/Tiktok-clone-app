@@ -3,6 +3,7 @@ package softeng.aueb.tiktok;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.content.pm.ConfigurationInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
@@ -21,9 +22,14 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
+import com.jaiselrahman.filepicker.activity.FilePickerActivity;
+import com.jaiselrahman.filepicker.config.Configurations;
+import com.jaiselrahman.filepicker.model.MediaFile;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.util.ArrayList;
 
 import static android.app.Activity.RESULT_CANCELED;
 import static android.app.Activity.RESULT_OK;
@@ -76,35 +82,74 @@ public class Upload extends Fragment implements View.OnClickListener{
                 else{
                     Log.i("VIDEO_RECORD_TAG", "No camera is detected");
                 }
-
+                break;
 
             case R.id.LookIntoFiles: //pick a file
 
-                
+                getCameraPermission();
+                videopicker();
+
 
 
                 break;
         }
     }
 
+
+    private void videopicker(){
+        Intent intent = new Intent(getActivity(), FilePickerActivity.class);
+        intent.putExtra(FilePickerActivity.CONFIGS,new Configurations.Builder()
+        .setCheckPermission(true)
+        .setShowVideos(true)
+        .setShowImages(false)
+        .enableVideoCapture(true)
+        .setMaxSelection(1)
+        .setSkipZeroSizeFiles(true)
+        .build());
+        startActivityForResult(intent,104);
+    }
+
     @Override
     public void onActivityResult(int requestCode, int resultCode,@Nullable Intent data){
         super.onActivityResult(requestCode,resultCode,data);
-        if(requestCode==VIDEO_RECORD_CODE ) {
-            if (resultCode == RESULT_OK) {
-                videoUri = data.getData();
-                Log.i("VIDEO_RECORD_TAG","VIDEO RECORDED AT PATH : " + videoUri);
-            } else if(resultCode == RESULT_CANCELED) {
-                Log.i("VIDEO_RECORD_TAG","VIDEO RECORDING IS CANCELLED");
-            }
-            else{
-                Log.i("VIDEO_RECORD_TAG","VIDEO RECORDING FAILED");
+        switch (requestCode){
+            case 101:
+                if(requestCode==VIDEO_RECORD_CODE ) {
 
-            }
+                    if (resultCode == RESULT_OK) {
+                        videoUri = data.getData();
+                        Log.i("VIDEO_RECORD_TAG","VIDEO RECORDED AT PATH : " + videoUri);
+                    } else if(resultCode == RESULT_CANCELED) {
+                        Log.i("VIDEO_RECORD_TAG","VIDEO RECORDING IS CANCELLED");
+                    }
+                    else{
+                        Log.i("VIDEO_RECORD_TAG","VIDEO RECORDING FAILED");
+
+                    }
+                }
+
+                break;
+
+            case 104:
+                if(resultCode==RESULT_OK && data!= null) {
+                    ArrayList<MediaFile> mediaFiles = data.getParcelableArrayListExtra(
+                            FilePickerActivity.MEDIA_FILES
+                    );
+                    String path = mediaFiles.get(0).getPath();
+
+                    displatToast("Video Path: " + path);
+
+                }
+                break;
+
         }
+
+
     }
 
-
+    private void displatToast(String s) {
+        Toast.makeText(getActivity().getApplicationContext(),s,Toast.LENGTH_SHORT).show();
+    }
 
 
     private boolean isCameraPresentInPhone(){
