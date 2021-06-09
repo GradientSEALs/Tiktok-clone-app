@@ -3,6 +3,7 @@ package softeng.aueb.tiktok;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -16,6 +17,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
@@ -23,11 +25,18 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 
+import static android.app.Activity.RESULT_CANCELED;
 import static android.app.Activity.RESULT_OK;
+
+import softeng.aueb.tiktok.AndroidUtil;
 
 public class Upload extends Fragment implements View.OnClickListener{
 
-    private static int VIDEO_REQUEST_CODE = 101;
+    private static int VIDEO_RECORD_CODE = 101;
+    private static int CAMERA_PERMISSION_CODE = 100;
+
+
+
     private Uri videoUri = null;
     View view;
     ImageButton capture;
@@ -55,12 +64,24 @@ public class Upload extends Fragment implements View.OnClickListener{
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
-            case R.id.CaptureVideo:
-            Intent camera = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
-            //File video_file = getFilepath();
-            startActivityForResult(camera, VIDEO_REQUEST_CODE);
-                break;
-            case R.id.LookIntoFiles:
+            case R.id.CaptureVideo:  //capture
+
+
+                if(isCameraPresentInPhone()){
+                    Log.i("VIDEO_RECORD_TAG", "Camera is detected");
+                    getCameraPermission();
+                    recordVideo();
+
+                }
+                else{
+                    Log.i("VIDEO_RECORD_TAG", "No camera is detected");
+                }
+
+
+            case R.id.LookIntoFiles: //pick a file
+
+                
+
 
                 break;
         }
@@ -69,11 +90,14 @@ public class Upload extends Fragment implements View.OnClickListener{
     @Override
     public void onActivityResult(int requestCode, int resultCode,@Nullable Intent data){
         super.onActivityResult(requestCode,resultCode,data);
-        if(requestCode==VIDEO_REQUEST_CODE ) {
+        if(requestCode==VIDEO_RECORD_CODE ) {
             if (resultCode == RESULT_OK) {
                 videoUri = data.getData();
-                Log.i("VIDEO_RECORD_TAG","VIDEO RECORDED AT PATH" + videoUri);
-            } else {
+                Log.i("VIDEO_RECORD_TAG","VIDEO RECORDED AT PATH : " + videoUri);
+            } else if(resultCode == RESULT_CANCELED) {
+                Log.i("VIDEO_RECORD_TAG","VIDEO RECORDING IS CANCELLED");
+            }
+            else{
                 Log.i("VIDEO_RECORD_TAG","VIDEO RECORDING FAILED");
 
             }
@@ -81,18 +105,33 @@ public class Upload extends Fragment implements View.OnClickListener{
     }
 
 
-    public File getFilepath(){
-        File folder = new File("sdcard/tiktok");
-        if(!folder.exists()){
-            folder.mkdir();
+
+
+    private boolean isCameraPresentInPhone(){
+        if(getActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)){
+            return true;
+        }
+        else{
+            return false;
         }
 
-        File video_file = new File(folder,"sample_video.mp4");
-
-
-
-        return video_file;
     }
+
+    private void getCameraPermission(){
+        if(ContextCompat.checkSelfPermission(getActivity(),Manifest.permission.CAMERA)
+        == PackageManager.PERMISSION_DENIED){
+            ActivityCompat.requestPermissions(getActivity(),new String[]
+                    {Manifest.permission.CAMERA},CAMERA_PERMISSION_CODE );
+        }
+
+    }
+
+    private void recordVideo() {
+        Intent camera = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
+        //File video_file = getFilepath();
+        startActivityForResult(camera, VIDEO_RECORD_CODE);
+    }
+
 
 
 

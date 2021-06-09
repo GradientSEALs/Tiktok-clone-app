@@ -9,6 +9,7 @@ import androidx.viewpager.widget.ViewPager;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 
 import softeng.aueb.tiktok.ui.main.SectionsPagerAdapter;
@@ -46,6 +47,8 @@ public class Tiktokactivity extends AppCompatActivity {
 
         capture = findViewById(R.id.CaptureVideo);
         gallery = findViewById(R.id.LookIntoFiles);
+
+
 
 
     }
