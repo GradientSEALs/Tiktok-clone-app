@@ -58,6 +58,7 @@ public class Subscribe extends Fragment implements View.OnClickListener{
                 out = new ObjectOutputStream(requestSocket.getOutputStream());
             } catch (IOException e) {
                 e.printStackTrace();
+
             }
             return null;
         }
