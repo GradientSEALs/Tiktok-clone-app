@@ -103,11 +103,11 @@ public class AppNodes extends Node {
                         }
                         else{
                             System.out.println("Trying to find right broker");
-                            Util.Pair<String,Integer> rightBrokerInfo = (Util.Pair<String,Integer>)ois.readObject();
+                            int rightBrokerInfo = (int)ois.readObject();
                             ois.close();
                             oos.close();
                             brokerSocket.close();
-                            brokerSocket = new Socket(rightBrokerInfo.item1, rightBrokerInfo.item2);
+                            brokerSocket = new Socket("localhost", rightBrokerInfo);
                             ois = new ObjectInputStream(brokerSocket.getInputStream());
                             oos = new ObjectOutputStream(brokerSocket.getOutputStream());
                             loginFlag = register(brokerSocket,answer);

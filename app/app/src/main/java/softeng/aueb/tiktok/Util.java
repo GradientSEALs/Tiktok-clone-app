@@ -35,7 +35,6 @@ public class Util {
 
     //============= OVERLOADED FOR STRING PATH INPUT ===========================//
     public static byte[] loadVideoFromDiskToRam(String videoFile){
-        try{
             File file = new File(""+videoFile);
             FileInputStream fis = new FileInputStream(file);
             byte[] fileData = new byte[(int)file.length()];
@@ -47,7 +46,8 @@ public class Util {
             System.err.println("IOException from loadSongFromDiskToRam() in util package");
         }
         return null;
-    }
+    }    try{
+
 
     *//**
      * Splits a file's data into smaller parts

@@ -13,6 +13,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -48,7 +49,7 @@ public class Upload extends Fragment implements View.OnClickListener{
     View view;
     ImageButton capture;
     ImageButton files;
-
+    EditText hashtags;
     @Nullable
     @org.jetbrains.annotations.Nullable
     @Override
@@ -57,7 +58,7 @@ public class Upload extends Fragment implements View.OnClickListener{
         view = inflater.inflate(R.layout.upload_layout,container,false);
         capture = view.findViewById(R.id.CaptureVideo);
         files = view.findViewById(R.id.LookIntoFiles);
-
+        hashtags = view.findViewById(R.id.hashtags);
         capture.setOnClickListener(this);
         files.setOnClickListener(this);
 
