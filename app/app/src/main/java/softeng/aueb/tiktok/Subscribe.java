@@ -76,13 +76,17 @@ public class Subscribe extends Fragment implements View.OnClickListener{
                 hashes.add(Util.getModMd5(ip));
             }
             Collections.sort(hashes);
-            /*for (int hash:hashes){
-                if (toSubHaSH<hash){
-
+            Collections.sort(brokers); //localhost:4000
+            String temp="";
+            for (int i = 0; i<3; i++){
+                if (toSubHaSH< hashes.get(i)){
+                    temp = brokers.get(i);
                 }
-            }*/
+            }
+            String[] temp2 = temp.split(":");
+            port = Integer.parseInt(temp2[1]);
             try {
-                requestSocket = new Socket("10.0.2.2",4000);
+                requestSocket = new Socket("10.0.2.2",port);
                 in  = new ObjectInputStream(requestSocket.getInputStream());
                 out = new ObjectOutputStream(requestSocket.getOutputStream());
 
