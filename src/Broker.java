@@ -92,10 +92,11 @@ public class Broker extends Node {
                         case 1: //register
                             String channelName = (String) ois.readObject();
                             System.out.println(channelName);
-                            int channelHash = ois.readInt();
+                            int channelHash = Util.getModMd5(channelName);
                             channelHash /= 3;
                             System.out.println(hashid + "====" + channelHash);
                             for (int brokerID : ListOfBrokers.keySet()) {
+                                System.out.println(hashid + "====" + brokerID);
                                 if (channelHash < brokerID && brokerID == hashid) {
                                     oos.writeBoolean(true);
                                     oos.flush();
@@ -109,7 +110,8 @@ public class Broker extends Node {
                                     System.out.println("To the next Broker");
                                     oos.writeBoolean(false);
                                     oos.flush();
-                                    oos.writeObject(ListOfBrokers.get(brokerID));
+                                    oos.writeObject(ListOfBrokers.get(brokerID).item2);
+                                    System.out.println(ListOfBrokers.get(brokerID));
                                     oos.flush();
                                     _stop();
                                     System.out.println("AppNode has left the broker");

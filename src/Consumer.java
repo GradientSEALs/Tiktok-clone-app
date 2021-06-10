@@ -6,8 +6,7 @@ import java.util.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.io.ObjectOutputStream;
-import org.json.JSONArray;
-import org.json.JSONObject;
+
 
 public class Consumer extends Thread {
 

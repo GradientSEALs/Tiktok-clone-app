@@ -22,6 +22,7 @@ public class MainActivity extends AppCompatActivity {
     EditText text;
     ArrayList<Integer> brokers;
     String port = "4000";
+    int _port = Integer.parseInt(port);
     String resp;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,19 +50,19 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private class ClientRunner extends AsyncTask<String,String,String>{
-
+        boolean flag = true;
         @Override
         protected String doInBackground(String... strings) {
             Socket requestSocket = null;
             ObjectInputStream in = null;
             ObjectOutputStream out = null;
-            int _port = Integer.parseInt(port);
-            boolean flag = true;
+
+
             do {
                 try {
                     requestSocket = new Socket("10.0.2.2", _port);
                     out = new ObjectOutputStream(requestSocket.getOutputStream());
-                    //in = new ObjectInputStream(requestSocket.getInputStream());
+                    in = new ObjectInputStream(requestSocket.getInputStream());
 
                     out.writeByte(1);
                     out.flush();
@@ -71,15 +72,14 @@ public class MainActivity extends AppCompatActivity {
 
                     boolean correctBroker = in.readBoolean();
                     resp = Boolean.toString(correctBroker);
-                    Log.e("DEBIG RECEIVED", resp);
+                    Log.e("DEBUG RECEIVED", resp);
                     if (!correctBroker) {
-                        brokers = (ArrayList<Integer>) in.readObject();
-                        _port = in.readInt();
+                        _port = (int) in.readObject();
+                        Log.e("DEBUG RECEIVED", String.valueOf(_port));
                         continue;
                     }else
-                        brokers = (ArrayList<Integer>) in.readObject();
+                        flag = false;
                     brokers = (ArrayList<Integer>) in.readObject();
-                    flag = false;
                 } catch (IOException | ClassNotFoundException e) {
                     e.printStackTrace();
                 } finally {
@@ -93,6 +93,12 @@ public class MainActivity extends AppCompatActivity {
                 }
             }while (flag);
             return resp;
+        }
+        protected void onProgressUpdate(Integer... progress) {
+            setProgress(progress[0]);
+        }
+        protected void onPostExecute(Long result) {
+            showDialog(6);
         }
     }
 }
