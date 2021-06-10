@@ -21,6 +21,7 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 
 
 public class Subscribe extends Fragment implements View.OnClickListener{
@@ -76,7 +77,11 @@ public class Subscribe extends Fragment implements View.OnClickListener{
                 hashes.add(Util.getModMd5(ip));
             }
             Collections.sort(hashes);
-            Collections.sort(brokers); //localhost:4000
+            brokers.sort((o1, o2) -> {
+                int hash1 = Util.getModMd5(o1);
+                int hash2 = Util.getModMd5(o2);
+                return Integer.compare(hash1, hash2);
+            }); //localhost:4000
             String temp="";
             for (int i = 0; i<3; i++){
                 if (toSubHaSH< hashes.get(i)){
@@ -107,3 +112,4 @@ public class Subscribe extends Fragment implements View.OnClickListener{
         }
     }
 }
+
