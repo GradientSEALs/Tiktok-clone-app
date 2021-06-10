@@ -3,7 +3,6 @@ package softeng.aueb.tiktok;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Intent;
-import android.content.pm.ConfigurationInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
@@ -12,10 +11,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -30,13 +27,12 @@ import com.jaiselrahman.filepicker.model.MediaFile;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
+
 import java.util.ArrayList;
 
 import static android.app.Activity.RESULT_CANCELED;
 import static android.app.Activity.RESULT_OK;
 
-import softeng.aueb.tiktok.AndroidUtil;
 
 public class Upload extends Fragment implements View.OnClickListener{
 

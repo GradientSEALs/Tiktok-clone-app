@@ -10,7 +10,7 @@ public class Broker extends Node {
     public ArrayList<String> brokerchannelnameslist = new ArrayList<>();
     public ArrayList<VideoFile> VideosPublisherConnection = new ArrayList<>();
 
-    public Map<String,ArrayList<String>> channelSubs = new HashMap<>();
+    public Map<String,ArrayList<String>> subs = new HashMap<>();
     public Util.Pair<String,Integer> contact;
     public Map<String,Util.Pair<String,Integer>> ChannelServerInfo = new HashMap<>();
     public volatile HashMap<String,ArrayList<VideoFile>> channelContent = new HashMap<>();
@@ -47,6 +47,7 @@ public class Broker extends Node {
         try {
             Broker broker = new Broker();
             broker.init(args[0],args[1],args[2]);
+            broker.channels.add("ody");
             broker.run();
         } catch (UnknownHostException e) {
             e.printStackTrace();
@@ -120,7 +121,12 @@ public class Broker extends Node {
                                     break;
                                 } else continue;
                             }
-                            oos.writeObject(ListOfBrokers);
+                            ArrayList<String> ipports = new ArrayList<>();
+                            for (Util.Pair<String, Integer> ipport : ListOfBrokers.values()){
+                                String str = ipport.item1+":"+ipport.item2;
+                                ipports.add(str);
+                            }
+                            oos.writeObject(ipports);
                             oos.flush();
                             break;
                         case 2: //publish a video
@@ -152,8 +158,8 @@ public class Broker extends Node {
                             video = (VideoFile) ois.readObject();
                             channelName = (String) ois.readObject();
 
-                            channelSubs.computeIfAbsent(channelName,k->new ArrayList<>());
-                            for (String channel : channelSubs.get(channelName)) {
+                            subs.computeIfAbsent(channelName, k->new ArrayList<>());
+                            for (String channel : subs.get(channelName)) {
                                 System.out.println(channel);
                                 Util.Pair<String, Integer> contact2 = ChannelServerInfo.get(channel);
                                 Socket notification = new Socket(contact2.item1, contact2.item2);
@@ -226,18 +232,23 @@ public class Broker extends Node {
                             String channame = (String) ois.readObject(); //channelname giving the order
                             String subchannel = (String) ois.readObject(); //channel that we want to sub
 
-                            boolean contains2 = channelSubs.containsKey(subchannel);
+                            boolean contains2 = subs.containsKey(subchannel);
 
-                            if (!contains2){
-                                channelSubs.put(subchannel, new ArrayList<String>());}
-                            channelSubs.get(subchannel).add(channame);
-
-
-                            System.out.println("Subscribition complete");
-                            System.out.println(channelSubs);
-
-
-
+                            if(channels.contains(subchannel)) {
+                                if (!contains2) {
+                                    subs.put(subchannel, new ArrayList<String>());
+                                }
+                                subs.get(subchannel).add(channame);
+                                System.out.println("Subscribition complete");
+                                System.out.println(subs);
+                            }else if(hashTags.contains(subchannel)) {
+                                if (!contains2) {
+                                    subs.put(subchannel, new ArrayList<String>());
+                                }
+                            }
+                            else{
+                                System.out.println("An error has occured");
+                            }
 
                             break;
 

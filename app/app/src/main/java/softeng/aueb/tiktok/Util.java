@@ -13,11 +13,7 @@ public class Util {
     public static final String BIG_PRIME_NUMBER = "7919";
     public static final boolean DEBUG = true;
 
-  /*  *//**
-     *
-     * @param videoFile pojo
-     * @return the mp4 binary data for that video
-     *//*
+   /*
     public static byte[] loadVideoFromDiskToRam(VideoFile videoFile){
         try{
             File file = new File(videoFile.path+"/"+videoFile.videoName);

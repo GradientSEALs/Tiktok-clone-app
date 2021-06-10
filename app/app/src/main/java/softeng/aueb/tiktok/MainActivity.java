@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -16,13 +17,13 @@ import java.net.Socket;
 import java.util.ArrayList;
 
 @SuppressWarnings("all")
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements AsyncResponse {
     Button buttonEnter;
     String username;
     EditText text;
-    ArrayList<Integer> brokers;
-    String port = "4000";
-    int _port = Integer.parseInt(port);
+    ArrayList<String> brokers;
+    int appBroker = 4000;
+
     String resp;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,17 +41,34 @@ public class MainActivity extends AppCompatActivity {
         super.onStart();
 
         buttonEnter.setOnClickListener(v -> {
-            ClientRunner runn = new ClientRunner();
+            ClientRunner runn = new ClientRunner(this);
             username = text.getText().toString();
-            runn.execute(port);
+            runn.execute("4000");
             Intent intent = new Intent(MainActivity.this,Tiktokactivity.class);
             intent.putExtra("username",username);
+            intent.putStringArrayListExtra("brokers",brokers);
+            intent.putExtra("port",appBroker);
             startActivity(intent);
         });
     }
 
+    @Override
+    public void processFinish(ArrayList<String> brokerPorts, int appBrokerPort) {
+        this.brokers = brokerPorts;
+        this.appBroker = appBrokerPort;
+        Toast.makeText(this, "Read File Successfully!", Toast.LENGTH_LONG).show();
+    }
+
     private class ClientRunner extends AsyncTask<String,String,String>{
         boolean flag = true;
+        int _port = 4000;
+        ArrayList<String> _brokers;
+        public AsyncResponse delegate = null;
+
+        ClientRunner(AsyncResponse delegate){
+            this.delegate = delegate;
+        }
+
         @Override
         protected String doInBackground(String... strings) {
             Socket requestSocket = null;
@@ -75,11 +93,10 @@ public class MainActivity extends AppCompatActivity {
                     Log.e("DEBUG RECEIVED", resp);
                     if (!correctBroker) {
                         _port = (int) in.readObject();
-                        Log.e("DEBUG RECEIVED", String.valueOf(_port));
                         continue;
                     }else
                         flag = false;
-                    brokers = (ArrayList<Integer>) in.readObject();
+                    _brokers = (ArrayList<String>) in.readObject();
                 } catch (IOException | ClassNotFoundException e) {
                     e.printStackTrace();
                 } finally {
@@ -92,13 +109,20 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
             }while (flag);
+            //appBroker = _port;
             return resp;
         }
         protected void onProgressUpdate(Integer... progress) {
             setProgress(progress[0]);
         }
         protected void onPostExecute(Long result) {
-            showDialog(6);
+            delegate.processFinish(brokers,appBroker);
+            Log.w("hello","TElos");
         }
+
     }
+
+
+
+
 }
