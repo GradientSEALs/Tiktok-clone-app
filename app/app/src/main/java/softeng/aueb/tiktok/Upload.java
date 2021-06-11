@@ -4,6 +4,7 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -11,6 +12,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
@@ -39,13 +41,15 @@ public class Upload extends Fragment implements View.OnClickListener{
     private static int VIDEO_RECORD_CODE = 101;
     private static int CAMERA_PERMISSION_CODE = 100;
 
-
-
+    MediaMetadataRetriever mmr = new MediaMetadataRetriever();
+    VideoFile video;
+    String path;
     private Uri videoUri = null;
     View view;
     ImageButton capture;
     ImageButton files;
     EditText hashtags;
+    Button uploadButton;
     @Nullable
     @org.jetbrains.annotations.Nullable
     @Override
@@ -55,6 +59,8 @@ public class Upload extends Fragment implements View.OnClickListener{
         capture = view.findViewById(R.id.CaptureVideo);
         files = view.findViewById(R.id.LookIntoFiles);
         hashtags = view.findViewById(R.id.hashtags);
+        uploadButton = view.findViewById(R.id.uploadButton);
+
         capture.setOnClickListener(this);
         files.setOnClickListener(this);
 
@@ -85,9 +91,13 @@ public class Upload extends Fragment implements View.OnClickListener{
 
                 getCameraPermission();
                 videopicker();
-
-
-
+                break;
+            case R.id.uploadButton:
+                mmr.setDataSource(path);
+                String name = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
+                video = new VideoFile(name);
+                video.setPath(path);
+                byte[] videoBytes = Util.loadVideoFromDiskToRam(video);
                 break;
         }
     }
@@ -132,7 +142,7 @@ public class Upload extends Fragment implements View.OnClickListener{
                     ArrayList<MediaFile> mediaFiles = data.getParcelableArrayListExtra(
                             FilePickerActivity.MEDIA_FILES
                     );
-                    String path = mediaFiles.get(0).getPath();
+                    path = mediaFiles.get(0).getPath();
 
                     displatToast("Video Path: " + path);
 

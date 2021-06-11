@@ -13,7 +13,6 @@ public class Util {
     public static final String BIG_PRIME_NUMBER = "7919";
     public static final boolean DEBUG = true;
 
-   /*
     public static byte[] loadVideoFromDiskToRam(VideoFile videoFile){
         try{
             File file = new File(videoFile.path+"/"+videoFile.videoName);
@@ -29,34 +28,12 @@ public class Util {
         return null;
     }
 
-    //============= OVERLOADED FOR STRING PATH INPUT ===========================//
-    public static byte[] loadVideoFromDiskToRam(String videoFile){
-            File file = new File(""+videoFile);
-            FileInputStream fis = new FileInputStream(file);
-            byte[] fileData = new byte[(int)file.length()];
-            fis.read(fileData);
-            return fileData;
-        }catch (FileNotFoundException e){
-            System.err.println("File not found exception for selected song");
-        }catch (IOException e){
-            System.err.println("IOException from loadSongFromDiskToRam() in util package");
-        }
-        return null;
-    }    try{
 
-
-    *//**
-     * Splits a file's data into smaller parts
-     *//*
     public static List<byte[]> chunkifyFile(byte[] data){
         int chunkSize = 512;
         return chunkifyFile(data, chunkSize);
     }
 
-    *//**
-     * Splits a file's data into smaller parts
-     *  the chunk size in bytes
-     *//*
     public static List<byte[]> chunkifyFile(byte[] data, int chunkSize){
         List<byte[]> result = new ArrayList<>();
         int chunks = data.length / chunkSize;
@@ -80,7 +57,7 @@ public class Util {
         }
 
         return result;
-    }*/
+    }
 
 
 
@@ -113,26 +90,6 @@ public class Util {
     }
 
 
-    /*get ip*/
-
-    public static String getIP(){
-        try{
-            return Inet4Address.getLocalHost().getHostAddress();
-        }catch (Exception e){
-            System.out.println("ip not available");
-        }
-
-        return  "null";
-
-
-    }
-    /*
-     * Used for debugging
-     */
-/*    public static void debug(String msg){
-        if (DEBUG) System.out.println(msg);
-    }
-*/
 
     public static class Pair<T1, T2>implements Serializable {
 
@@ -145,6 +102,6 @@ public class Util {
             this.item1 = item1;
             this.item2 = item2;
         }
+        }
     }
-
 }
