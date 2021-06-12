@@ -152,16 +152,15 @@ public class Broker extends Node {
                             byte[] bytes = new byte[512];
                             int count = 0;
                             while ((count=ois.read(bytes)) > 0 ) {
+                                System.out.println(bytes.length);
                                 out.write(bytes);
-
                             }
                             out.flush();
-                            Util.debug("file donwloaded");
                             out.close();
+                            Util.debug("file donwloaded");
+
                             Util.debug("file closed");
                             System.out.println("Finished video receiving");
-                            oos.writeBoolean(true); //says to the AppNode that we were notified
-                            oos.flush();
                             break;
 
                         case 8:

@@ -89,9 +89,9 @@ public class Upload extends Fragment implements View.OnClickListener{
         assert tiktok != null;
         //port = tiktok.port;
         channelname = tiktok.username;
-        brokers.add("10.0.2.2:4000");
-        brokers.add("10.0.2.2:4001");
-        brokers.add("10.0.2.2:4002");
+        brokers.add("10.0.2.2;4000");
+        brokers.add("10.0.2.2;4001");
+        brokers.add("10.0.2.2;4002");
     }
 
     @SuppressLint("NonConstantResourceId")
@@ -118,7 +118,7 @@ public class Upload extends Fragment implements View.OnClickListener{
                 videopicker();
                 break;
             case R.id.uploadButton:
-                mmr.setDataSource(path);
+                //mmr.setDataSource(path);
 
                 video = new VideoFile(videoName.getText().toString()+".mp4");
                 video.setPath(path);
@@ -212,15 +212,18 @@ public class Upload extends Fragment implements View.OnClickListener{
         startActivityForResult(camera, VIDEO_RECORD_CODE);
     }
 
-    private class Publisher extends AsyncTask<VideoFile,String,Boolean>{
+    private class Publisher extends AsyncTask<VideoFile,String,String>{
 
         Socket broker = null;
         ObjectInputStream in = null;
         ObjectOutputStream out = null;
+        String hashtag;
+        int port;
+
 
         @Override
-        protected Boolean doInBackground(VideoFile... videos) {
-            String hashtag = hashtags.getText().toString();
+        protected String doInBackground(VideoFile... videos) {
+            hashtag = hashtags.getText().toString();
             int toSubHaSH = Util.getModMd5(hashtag);
             ArrayList<Integer> hashes = new ArrayList<>();
             for (String ip : brokers){
@@ -231,18 +234,19 @@ public class Upload extends Fragment implements View.OnClickListener{
                 int hash1 = Util.getModMd5(o1);
                 int hash2 = Util.getModMd5(o2);
                 return Integer.compare(hash1, hash2);
-            }); //localhost:4000
+            });
             String temp = "";
+
             for (int i = 0; i<3; i++){
                 if (toSubHaSH< hashes.get(i)){
+                    Log.e("DEBUG", brokers.get(i));
                     temp = brokers.get(i);
                 }
             }
-       /*     String[] temp2 = temp.split("\\:");
-            Log.i("path",temp);
-            int port = Integer.parseInt(temp2[0]);*/
+            String[] temp2 = temp.split(";");
+            port = Integer.parseInt(temp2[1]);
             try {
-                broker = new Socket("10.0.2.2",4002);
+                broker = new Socket("10.0.2.2",port);
                 in = new ObjectInputStream(broker.getInputStream());
                 out = new ObjectOutputStream(broker.getOutputStream());
                 out.writeByte(2);
@@ -255,23 +259,17 @@ public class Upload extends Fragment implements View.OnClickListener{
                 out.flush();
 
                 byte[] videoData = Util.loadVideoFromDiskToRam(video);
-                Log.e("DEBUG","Loaded video");
                 List<byte[]> chunckedVideo = Util.chunkifyFile(videoData);
-                Log.e("DEBUG","Chuncked video");
                 for (byte[] data : chunckedVideo) {
                     out.write(data);
-                    Log.e("DEBUG","pushing video");
-
                 }
                 out.flush();
-                broker.close();
 
             } catch (IOException e) {
                 e.printStackTrace();
-                return false;
             }
 
-            return true;
+            return null;
         }
     }
 
