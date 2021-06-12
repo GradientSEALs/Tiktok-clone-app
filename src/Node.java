@@ -10,7 +10,7 @@ public class Node {
 
     public static ArrayList<Broker> brokers = new ArrayList<>();
 
-    public static ArrayList<AppNodes> appnodes = new ArrayList<>();
+    //public static ArrayList<AppNodes> appnodes = new ArrayList<>();
 
     public static HashSet<String> Generalhashtags = new HashSet<>();
 
@@ -27,9 +27,9 @@ public class Node {
         return brokers;
     };
 
-    public static ArrayList<AppNodes> getAppnodes(){
+   /* public static ArrayList<AppNodes> getAppnodes(){
         return appnodes;
-    };
+    };*/
 
 
     public static HashSet<String> getChannelnameslist() {

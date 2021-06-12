@@ -16,7 +16,7 @@ public class Util {
      * @param videoFile pojo
      * @return the mp4 binary data for that video
      */
-    public static byte[] loadVideoFromDiskToRam(VideoFile videoFile){
+   /* public static byte[] loadVideoFromDiskToRam(VideoFile videoFile){
         try{
             File file = new File(videoFile.path+"/"+videoFile.videoName);
             FileInputStream fis = new FileInputStream(file);
@@ -30,7 +30,7 @@ public class Util {
         }
         return null;
     }
-
+*/
     //============= OVERLOADED FOR STRING PATH INPUT ===========================//
     public static byte[] loadVideoFromDiskToRam(String videoFile){
         try{

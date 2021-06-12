@@ -1,5 +1,4 @@
-
-import java.io.Serial;
+package softeng.aueb.tiktok;
 import java.io.Serializable;
 import java.util.*;
 @SuppressWarnings("All")
@@ -9,15 +8,12 @@ public class VideoFile implements Serializable {
     //public JSONObject videoDetails;
     public String path;
     public ArrayList<String> associatedHashtags;
-    public AppNodes owner;
-    @Serial
     private static final long serialVersionUID = -2723363051253966964L;
 
-    public VideoFile(String videoName,String channelName,ArrayList<String> associatedHashtags, AppNodes owner){
+    public VideoFile(String videoName,String channelName,ArrayList<String> associatedHashtags){
         this.videoName = videoName;
         this.channelName = channelName;
         this.associatedHashtags = associatedHashtags;
-        this.owner = owner;
     }
 
     public VideoFile(String videoName, String channelName,String path, String[] hashtags){
@@ -56,6 +52,13 @@ public class VideoFile implements Serializable {
         }*/
     }
 
+    public void setChannelName(String channelName) {
+        this.channelName = channelName;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
+    }
 
     public String getChannelName() {
         return channelName;

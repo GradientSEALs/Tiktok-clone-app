@@ -1,3 +1,4 @@
+/*
 import java.io.*;
 import java.net.ConnectException;
 import java.net.InetAddress;
@@ -133,9 +134,11 @@ public class AppNodes extends Node {
                     case 2: //publish video
 
 
-                        /*loadAvailableFiles(folder, name);
+                        */
+/*loadAvailableFiles(folder, name);
                         Scanner skr = new Scanner(System.in);
-                        videoFiles.forEach((v) -> System.out.println(v));*/
+                        videoFiles.forEach((v) -> System.out.println(v));*//*
+
 
 
                         System.out.println("Pick the file that you want to upload");
@@ -449,7 +452,8 @@ public class AppNodes extends Node {
     public String getChannelName(){return name;}
 
 
-    /*public void loadAvailableFiles(String folder, String channel){
+    */
+/*public void loadAvailableFiles(String folder, String channel){
         File directory = new File(""+folder);
         File[] contents = directory.listFiles();
         if (contents == null){
@@ -460,7 +464,8 @@ public class AppNodes extends Node {
             if (f.getName().endsWith(".mp4")) {
                 videoFiles.add(new VideoFile(f.getName(),channel,folder));
             }
-        }*/
+        }*//*
+
 
     public void loadAvailableFiles(String folder, String channel){
         File directory = new File(""+folder);
@@ -539,3 +544,4 @@ public class AppNodes extends Node {
 
 
 }
+*/

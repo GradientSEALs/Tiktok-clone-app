@@ -5,7 +5,8 @@ import java.util.*;
 public class VideoFile implements Serializable {
     public String videoName;
     public String channelName;
-    //public JSONObject videoDetails;
+    String duration;
+    String frames;
     public String path;
     public ArrayList<String> associatedHashtags;
     private static final long serialVersionUID = -2723363051253966964L;
@@ -50,6 +51,18 @@ public class VideoFile implements Serializable {
         } catch (JSONException e) {
             e.printStackTrace();
         }*/
+    }
+
+    public void setChannelName(String channelName) {
+        this.channelName = channelName;
+    }
+
+    public void setDuration(String duration) {
+        this.duration = duration;
+    }
+
+    public void setFrames(String frames) {
+        this.frames = frames;
     }
 
     public void setPath(String path) {

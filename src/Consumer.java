@@ -1,3 +1,4 @@
+/*
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -69,4 +70,4 @@ public Consumer(Socket conn, String videoname,String folder,ObjectOutputStream o
     }
 
 
-}
+}*/

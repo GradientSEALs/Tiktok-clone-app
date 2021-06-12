@@ -1,3 +1,4 @@
+/*
 //import java.io.Serial;
 //import java.io.Serial;
 import java.io.Serial;
@@ -61,3 +62,4 @@ public class Message implements Serializable {
         return TOKEN_ID;
     }
 }
+*/

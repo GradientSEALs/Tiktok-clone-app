@@ -51,9 +51,9 @@ public class Subscribe extends Fragment implements View.OnClickListener{
         //port = tiktok.port;
         myChannelName = tiktok.username;
         //brokers = tiktok.brokers;
-        brokers.add("localhost:4000");
-        brokers.add("localhost:4001");
-        brokers.add("localhost:4002");
+        brokers.add("10.0.2.2:4000");
+        brokers.add("10.0.2.2:4001");
+        brokers.add("10.0.2.2:4002");
     }
 
     @Override

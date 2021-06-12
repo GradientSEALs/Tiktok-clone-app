@@ -13,6 +13,7 @@ import org.jetbrains.annotations.NotNull;
 import softeng.aueb.tiktok.Livefeed;
 import softeng.aueb.tiktok.R;
 import softeng.aueb.tiktok.Subscribe;
+import softeng.aueb.tiktok.Tiktokactivity;
 import softeng.aueb.tiktok.Upload;
 
 /**

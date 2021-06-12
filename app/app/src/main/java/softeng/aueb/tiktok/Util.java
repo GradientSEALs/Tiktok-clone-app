@@ -15,7 +15,7 @@ public class Util {
 
     public static byte[] loadVideoFromDiskToRam(VideoFile videoFile){
         try{
-            File file = new File(videoFile.path+"/"+videoFile.videoName);
+            File file = new File(""+videoFile.path);
             FileInputStream fis = new FileInputStream(file);
             byte[] fileData = new byte[(int)file.length()];
             fis.read(fileData);
@@ -101,7 +101,6 @@ public class Util {
         public Pair(T1 item1, T2 item2) {
             this.item1 = item1;
             this.item2 = item2;
-        }
         }
     }
 }

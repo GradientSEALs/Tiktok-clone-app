@@ -42,7 +42,8 @@ public class Tiktokactivity extends AppCompatActivity {
         TabLayout tabs = binding.tabs;
         tabs.setupWithViewPager(viewPager);
 
-
+        Bundle bundle = new Bundle();
+        bundle.putString("user",username);
         capture = findViewById(R.id.CaptureVideo);
         gallery = findViewById(R.id.LookIntoFiles);
 
