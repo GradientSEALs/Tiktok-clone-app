@@ -78,7 +78,6 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse {
 
             do {
                 try {
-
                     requestSocket = new Socket("10.0.2.2", _port);
                     out = new ObjectOutputStream(requestSocket.getOutputStream());
                     in = new ObjectInputStream(requestSocket.getInputStream());
@@ -104,7 +103,7 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse {
                     try {
                         in.close();
                         out.close();
-                       requestSocket.close();
+                        requestSocket.close();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
