@@ -34,6 +34,7 @@ public class VideoFile implements Serializable {
     }
     public VideoFile(String videoName){
         this.videoName = videoName;
+        associatedHashtags = new ArrayList<>();
         /*this.videoDetails = new JSONObject();
         try {
             videoDetails.put("action","GET_VIDEO");
@@ -75,6 +76,10 @@ public class VideoFile implements Serializable {
 
     public String getVideoName() {
         return videoName;
+    }
+
+    public void setAssociatedHashtags(String hashtag) {
+        this.associatedHashtags.add(hashtag);
     }
 
     @Override

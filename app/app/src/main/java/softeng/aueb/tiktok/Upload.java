@@ -89,9 +89,9 @@ public class Upload extends Fragment implements View.OnClickListener{
         assert tiktok != null;
         //port = tiktok.port;
         channelname = tiktok.username;
-        brokers.add("10.0.2.2;4000");
-        brokers.add("10.0.2.2;4001");
-        brokers.add("10.0.2.2;4002");
+        brokers.add("10.0.2.2:4000");
+        brokers.add("10.0.2.2:4001");
+        brokers.add("10.0.2.2:4002");
     }
 
     @SuppressLint("NonConstantResourceId")
@@ -123,6 +123,7 @@ public class Upload extends Fragment implements View.OnClickListener{
                 video = new VideoFile(videoName.getText().toString()+".mp4");
                 video.setPath(path);
                 video.setChannelName(channelname);
+                video.setAssociatedHashtags(hashtags.getText().toString());
                 new Publisher().execute(video);
 
 
@@ -239,11 +240,10 @@ public class Upload extends Fragment implements View.OnClickListener{
 
             for (int i = 0; i<3; i++){
                 if (toSubHaSH< hashes.get(i)){
-                    Log.e("DEBUG", brokers.get(i));
                     temp = brokers.get(i);
                 }
             }
-            String[] temp2 = temp.split(";");
+            String[] temp2 = temp.split(":");
             port = Integer.parseInt(temp2[1]);
             try {
                 broker = new Socket("10.0.2.2",port);

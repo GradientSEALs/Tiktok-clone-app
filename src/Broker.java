@@ -165,25 +165,34 @@ public class Broker extends Node {
 
                         case 8:
                             /** Process to send videos to subscribers  **/
-                            video = (softeng.aueb.tiktok.VideoFile) ois.readObject();
                             channelName = (String) ois.readObject();
+                            Iterator it = subs.entrySet().iterator();
+                            while (it.hasNext()){
+                                Map.Entry pair = (Map.Entry) it.next();
+                                String subbed = (String) pair.getKey();
+                                ArrayList<String> info = (ArrayList<String>) pair.getValue();
+                                Util.Pair<String,Integer> contactInfo;
+                                if (ChannelServerInfo.containsKey(channelName)){
+                                    contactInfo = ChannelServerInfo.get(channelName);
+                                }
+                                else continue;
+                                Socket subscriber = new Socket(contactInfo.item1,contactInfo.item2);
+                                ObjectOutputStream outSub = new ObjectOutputStream(subscriber.getOutputStream());
+                                ObjectInputStream inSub = new ObjectInputStream(subscriber.getInputStream());
+                                File folder = new File(""+directory);
+                                File[] listOfFiles = folder.listFiles();
 
-                            subs.computeIfAbsent(channelName, k->new ArrayList<>());
-                            for (String channel : subs.get(channelName)) {
-                                System.out.println(channel);
-                                Util.Pair<String, Integer> contact2 = ChannelServerInfo.get(channel);
-                                Socket notification = new Socket(contact2.item1, contact2.item2);
-                                ObjectOutputStream oos2 = new ObjectOutputStream(notification.getOutputStream());
-                                oos2.writeByte(2);
-                                oos2.flush();
-                                oos2.writeObject(video.getVideoName());
-                                oos2.flush();
-                                Util.Pair<String, Integer> contact3 = ChannelServerInfo.get(channelName);
-                                oos2.writeObject(contact3);
-                                oos2.flush();
-                                System.out.println("Finished sending publisher connection info to subscriber");
-                            }
-
+                                for (File file : listOfFiles) {
+                                    if (file.isFile()) {
+                                        byte[] fileData = Util.loadVideoFromDiskToRam(file.getName());
+                                        List<byte[]> chunckedData = Util.chunkifyFile(fileData);
+                                        for (byte[] buffer : chunckedData){
+                                            outSub.write(buffer);
+                                        }
+                                        outSub.flush();
+                                    }
+                                }
+                             }
 
                             break;
 
