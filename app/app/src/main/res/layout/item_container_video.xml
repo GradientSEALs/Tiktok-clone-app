@@ -29,7 +29,7 @@
             android:paddingStart="5dp"
             android:paddingTop="5dp"
             android:paddingEnd="5dp"
-            android:shadowColor="black"
+            android:shadowColor="@color/black"
             android:shadowDx="0"
             android:shadowDy="0"
             android:shadowRadius="15"
