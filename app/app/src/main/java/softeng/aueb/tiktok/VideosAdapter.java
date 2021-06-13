@@ -4,6 +4,7 @@ import android.media.MediaPlayer;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.VideoView;
 
@@ -45,35 +46,35 @@ public class VideosAdapter extends RecyclerView.Adapter<VideosAdapter.VideoViewH
 
         VideoView videoView;
         TextView textVideoTitle, textVideoHashtags;
+        ProgressBar progressBar;
 
         public VideoViewHolder(@NonNull View itemView) {
             super(itemView);
             videoView = itemView.findViewById(R.id.videoView);
             textVideoTitle = itemView.findViewById(R.id.textVideoTitle);
             textVideoHashtags = itemView.findViewById(R.id.textVideoHashtags);
+            progressBar = itemView.findViewById(R.id.videoProgressbar);
         }
 
         void setVideoData(VideoFile videoItem) {
             textVideoTitle.setText(videoItem.getVideoName());
             textVideoHashtags.setText(videoItem.getAssociatedHashtags().toString());
             videoView.setVideoPath(videoItem.path);
-            videoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-                @Override
-                public void onPrepared(MediaPlayer mp) {
-                    mp.start();
+            videoView.setOnPreparedListener(mp -> {
+                progressBar.setVisibility(View.GONE);
+                mp.start();
 
-                    float videoRatio = mp.getVideoWidth() / (float) mp.getVideoHeight();
-                    float screenRatio = videoView.getWidth() / (float) videoView.getHeight();
+                float videoRatio = mp.getVideoWidth() / (float) mp.getVideoHeight();
+                float screenRatio = videoView.getWidth() / (float) videoView.getHeight();
 
-                    float scale = videoRatio / screenRatio;
-                    if (scale > 1f) {
-                        videoView.setScaleX(scale);
-                    } else {
-                        videoView.setScaleY(1f / scale);
-                    }
-
-
+                float scale = videoRatio / screenRatio;
+                if (scale > 1f) {
+                    videoView.setScaleX(scale);
+                } else {
+                    videoView.setScaleY(1f / scale);
                 }
+
+
             });
 
             videoView.setOnCompletionListener(MediaPlayer::start);

@@ -7,6 +7,8 @@ import com.google.android.material.tabs.TabLayout;
 
 import androidx.viewpager.widget.ViewPager;
 import androidx.appcompat.app.AppCompatActivity;
+
+import android.os.Environment;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
@@ -23,7 +25,7 @@ import softeng.aueb.tiktok.databinding.ActivityTiktokactivityBinding;
 
 public class Tiktokactivity extends AppCompatActivity {
 
-    String directory;
+    String directory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getPath(); ;
     ImageButton capture;
     ImageButton gallery;
     TextView _username;
@@ -31,9 +33,12 @@ public class Tiktokactivity extends AppCompatActivity {
     int port;
     String username;
     ArrayList<String> brokers;
+    ServerSocket server;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        new Consumer().execute();
         super.onCreate(savedInstanceState);
         username = getIntent().getStringExtra("username");
         brokers = getIntent().getExtras().getStringArrayList("brokers");
@@ -42,6 +47,7 @@ public class Tiktokactivity extends AppCompatActivity {
         setContentView(binding.getRoot());
         _username = binding.username;
         _username.setText(username);
+
 
         SectionsPagerAdapter sectionsPagerAdapter = new SectionsPagerAdapter(this, getSupportFragmentManager());
         ViewPager viewPager = binding.viewPager;
@@ -60,15 +66,15 @@ public class Tiktokactivity extends AppCompatActivity {
 
 
     }
-    private class Consumer extends AsyncTask<String,String,String> {
+    private class Consumer extends AsyncTask<Socket,String,String> {
 
-        ServerSocket server;
+
         Socket conn;
         ObjectOutputStream out;
         ObjectInputStream in;
 
         @Override
-        protected String doInBackground(String... strings) {
+        protected String doInBackground(Socket... sockets) {
             try {
                 server = new ServerSocket(7000);
                 conn = server.accept();
@@ -81,7 +87,7 @@ public class Tiktokactivity extends AppCompatActivity {
                 int count = 0;
                 while ((count=in.read(bytes)) > 0 ) {
                     fout.write(bytes);
-
+                    System.out.println(bytes.length);
                 }
                 fout.flush();
 
