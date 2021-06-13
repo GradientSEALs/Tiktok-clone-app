@@ -37,7 +37,13 @@ public class Livefeed extends Fragment {
         //Here you have to insert the videos that you want to be displayed
 
         VideoFile video1 = new VideoFile("ody");
+        VideoFile video2 = new VideoFile("kota");
+        video1.setAssociatedHashtags("pipis");
+        video2.setAssociatedHashtags("pipis");
+        video1.setPath("content://com.android.providers.media.documents/document/video%3A33/VID_20210612_181327.mp4");
+        video2.setPath("content://com.android.providers.media.documents/document/video%3A33/VID_20210612_181327.mp4");
         videoItems.add(video1);
+        videoItems.add(video2);
 
         videosViewPager.setAdapter(new VideosAdapter(videoItems));
 

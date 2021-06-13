@@ -56,6 +56,7 @@ public class VideosAdapter extends RecyclerView.Adapter<VideosAdapter.VideoViewH
         void setVideoData(VideoFile videoItem) {
             textVideoTitle.setText(videoItem.getVideoName());
             textVideoHashtags.setText(videoItem.getAssociatedHashtags().toString());
+            videoView.setVideoPath(videoItem.path);
             videoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                 @Override
                 public void onPrepared(MediaPlayer mp) {
@@ -75,12 +76,7 @@ public class VideosAdapter extends RecyclerView.Adapter<VideosAdapter.VideoViewH
                 }
             });
 
-            videoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                @Override
-                public void onCompletion(MediaPlayer mp) {
-                    mp.start();
-                }
-            });
+            videoView.setOnCompletionListener(MediaPlayer::start);
 
         }
     }
