@@ -22,10 +22,11 @@
         android:usesCleartextTraffic="true"
         android:theme="@style/Theme.TikTok"
         tools:targetApi='m'>
+
         <activity
             android:name=".Tiktokactivity"
             android:label="@string/title_activity_tiktokactivity"
-            android:theme="@style/Theme.TikTok.NoActionBar" />
+            android:theme="@style/FullScreen" />
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

@@ -30,7 +30,7 @@ public class Livefeed extends Fragment {
     @Override
     public View onCreateView(@NonNull @NotNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 
-        /*final ViewPager2 videosViewPager = getActivity().findViewById(R.id.videoViewPager);
+        final ViewPager2 videosViewPager = getActivity().findViewById(R.id.videoViewPager);
 
         List<VideoFile> videoItems = new ArrayList<>();
 
@@ -45,7 +45,7 @@ public class Livefeed extends Fragment {
         videoItems.add(video1);
         videoItems.add(video2);
 
-        videosViewPager.setAdapter(new VideosAdapter(videoItems));*/
+        videosViewPager.setAdapter(new VideosAdapter(videoItems));
 
         return inflater.inflate(R.layout.livefeed_layout,container,false);
 

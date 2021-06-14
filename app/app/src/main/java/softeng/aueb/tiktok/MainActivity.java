@@ -101,13 +101,13 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse {
                 } catch (IOException | ClassNotFoundException e) {
                     e.printStackTrace();
                 } finally {
-                    try {
+                    /*try {
                         in.close();
                         out.close();
                        requestSocket.close();
                     } catch (IOException e) {
                         e.printStackTrace();
-                    }
+                    }*/
                 }
             }while (flag);
             //appBroker = _port;
