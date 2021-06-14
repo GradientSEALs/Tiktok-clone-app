@@ -151,14 +151,22 @@ public class Broker extends Node {
                             Util.debug(directory+"/"+video.getVideoName());
                             byte[] bytes = new byte[512];
                             int count = 0;
-                            while ((count=ois.read(bytes)) > 0 ) {
-                                System.out.println(bytes.length);
-                                out.write(bytes);
+                            try {
+                                for (;;) {
+                                    bytes = (byte[]) ois.readObject();
+                                    if (bytes == null){
+                                        break;
+                                    }
+                                    out.write(bytes);
+                                }
+                            }catch (EOFException exc){
+                                /*Util.debug("file donwloaded");
+                                out.close();
+                                Util.debug("file closed");
+                                System.out.println("Finished video receiving");*/
                             }
-                            out.flush();
-                            out.close();
                             Util.debug("file donwloaded");
-
+                            out.close();
                             Util.debug("file closed");
                             System.out.println("Finished video receiving");
                             break;

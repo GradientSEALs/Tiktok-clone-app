@@ -31,12 +31,14 @@ import com.jaiselrahman.filepicker.model.MediaFile;
 import org.jetbrains.annotations.NotNull;
 
 
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -224,7 +226,7 @@ public class Upload extends Fragment implements View.OnClickListener{
 
         @Override
         protected String doInBackground(VideoFile... videos) {
-            hashtag = hashtags.getText().toString();
+            /*hashtag = hashtags.getText().toString();
             int toSubHaSH = Util.getModMd5(hashtag);
             ArrayList<Integer> hashes = new ArrayList<>();
             for (String ip : brokers){
@@ -243,12 +245,13 @@ public class Upload extends Fragment implements View.OnClickListener{
                     temp = brokers.get(i);
                 }
             }
-            /*String[] temp2 = temp.split(":");
+            String[] temp2 = temp.split(":");
             port = Integer.parseInt(temp2[1]);*/
             try {
                 broker = new Socket("10.0.2.2",4002);
                 in = new ObjectInputStream(broker.getInputStream());
                 out = new ObjectOutputStream(broker.getOutputStream());
+                //DataOutputStream out2 = new DataOutputStream(broker.getOutputStream());
                 out.writeByte(2);
                 out.flush();
 
@@ -261,10 +264,13 @@ public class Upload extends Fragment implements View.OnClickListener{
                 byte[] videoData = Util.loadVideoFromDiskToRam(video);
                 List<byte[]> chunckedVideo = Util.chunkifyFile(videoData);
                 for (byte[] data : chunckedVideo) {
-                    out.write(data);
+                    Log.d("DEBUG", Base64.getEncoder().encodeToString(data));
+                    out.writeObject(data);
+                    out.flush();
                 }
+                out.writeObject(null);
                 out.flush();
-
+                Log.d("DEBUG","TSIMPOUKIA");
             } catch (IOException e) {
                 e.printStackTrace();
             }
