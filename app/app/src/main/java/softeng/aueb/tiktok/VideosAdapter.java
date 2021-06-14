@@ -1,6 +1,7 @@
 package softeng.aueb.tiktok;
 
 import android.media.MediaPlayer;
+import android.os.Debug;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -45,19 +46,21 @@ public class VideosAdapter extends RecyclerView.Adapter<VideosAdapter.VideoViewH
     static class VideoViewHolder extends RecyclerView.ViewHolder {
 
         VideoView videoView;
-        TextView textVideoTitle, textVideoHashtags;
+        TextView textVideoTitle, textVideoHashtags, textVideoChannel;
         ProgressBar progressBar;
 
         public VideoViewHolder(@NonNull View itemView) {
             super(itemView);
             videoView = itemView.findViewById(R.id.videoView);
             textVideoTitle = itemView.findViewById(R.id.textVideoTitle);
+            //textVideoChannel = itemView.findViewById(R.id.textVideoChannelName);
             textVideoHashtags = itemView.findViewById(R.id.textVideoHashtags);
             progressBar = itemView.findViewById(R.id.videoProgressbar);
         }
 
         void setVideoData(VideoFile videoItem) {
             textVideoTitle.setText(videoItem.getVideoName());
+            textVideoTitle.setText(videoItem.getChannelName());
             textVideoHashtags.setText(videoItem.getAssociatedHashtags().toString());
             videoView.setVideoPath(videoItem.path);
             videoView.setOnPreparedListener(mp -> {
@@ -80,5 +83,6 @@ public class VideosAdapter extends RecyclerView.Adapter<VideosAdapter.VideoViewH
             videoView.setOnCompletionListener(MediaPlayer::start);
 
         }
+
     }
 }

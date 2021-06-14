@@ -65,6 +65,8 @@ public class Tiktokactivity extends AppCompatActivity {
 
 
 
+
+
     }
     private class Consumer extends AsyncTask<Socket,String,String> {
 

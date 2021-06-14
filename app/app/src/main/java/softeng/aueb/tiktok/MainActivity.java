@@ -79,7 +79,7 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse {
             do {
                 try {
 
-                    requestSocket = new Socket("10.0.2.2", _port);
+                    requestSocket = new Socket("192.168.2.9", _port);
                     out = new ObjectOutputStream(requestSocket.getOutputStream());
                     in = new ObjectInputStream(requestSocket.getInputStream());
 
@@ -101,13 +101,13 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse {
                 } catch (IOException | ClassNotFoundException e) {
                     e.printStackTrace();
                 } finally {
-                    /*try {
+                    try {
                         in.close();
                         out.close();
                        requestSocket.close();
                     } catch (IOException e) {
                         e.printStackTrace();
-                    }*/
+                    }
                 }
             }while (flag);
             //appBroker = _port;

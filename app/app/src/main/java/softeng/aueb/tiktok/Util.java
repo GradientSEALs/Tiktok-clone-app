@@ -21,7 +21,7 @@ public class Util {
             fis.read(fileData);
             return fileData;
         }catch (FileNotFoundException e){
-            System.err.println("File not found exception for selected song");
+            System.err.println("File not found exception");
         }catch (IOException e){
             System.err.println("IOException from loadSongFromDiskToRam() in util package");
         }

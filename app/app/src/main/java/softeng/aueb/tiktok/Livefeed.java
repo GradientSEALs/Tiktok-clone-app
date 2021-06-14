@@ -30,7 +30,11 @@ public class Livefeed extends Fragment {
     @Override
     public View onCreateView(@NonNull @NotNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 
-        final ViewPager2 videosViewPager = getActivity().findViewById(R.id.videoViewPager);
+
+        View rootview = inflater.inflate(R.layout.livefeed_layout,container,false);
+
+
+        final ViewPager2 videosViewPager = rootview.findViewById(R.id.videoViewPager);
 
         List<VideoFile> videoItems = new ArrayList<>();
 
@@ -40,16 +44,19 @@ public class Livefeed extends Fragment {
         VideoFile video2 = new VideoFile("kota");
         video1.setAssociatedHashtags("pipis");
         video2.setAssociatedHashtags("pipis");
-        video1.setPath("https://www.infinityandroid.com/videos/video1.mp4");
-        video2.setPath("https://www.infinityandroid.com/videos/video2.mp4");
+        video1.setPath("https://file-examples-com.github.io/uploads/2017/04/file_example_MP4_480_1_5MG.mp4");
+        video2.setPath("https://file-examples-com.github.io/uploads/2017/04/file_example_MP4_480_1_5MG.mp4");
         videoItems.add(video1);
         videoItems.add(video2);
 
         videosViewPager.setAdapter(new VideosAdapter(videoItems));
 
-        return inflater.inflate(R.layout.livefeed_layout,container,false);
+        return rootview;
 
     }
+
+
+
 
 
 

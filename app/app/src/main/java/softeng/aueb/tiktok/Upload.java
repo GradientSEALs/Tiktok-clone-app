@@ -250,7 +250,7 @@ public class Upload extends Fragment implements View.OnClickListener{
             port = Integer.parseInt(temp2[1]);*/
             try {
 
-                broker = new Socket("10.0.2.2",4002);
+                broker = new Socket("192.168.2.9",4002);
                 in = new ObjectInputStream(broker.getInputStream());
                 out = new ObjectOutputStream(broker.getOutputStream());
                 //DataOutputStream out2 = new DataOutputStream(broker.getOutputStream());
