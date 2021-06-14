@@ -126,7 +126,8 @@ public class Upload extends Fragment implements View.OnClickListener{
                 video.setPath(path);
                 video.setChannelName(channelname);
                 video.setAssociatedHashtags(hashtags.getText().toString());
-                new Publisher().execute(video);
+                Publisher p = new Publisher();
+                p.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 
 
                 break;
@@ -215,7 +216,7 @@ public class Upload extends Fragment implements View.OnClickListener{
         startActivityForResult(camera, VIDEO_RECORD_CODE);
     }
 
-    private class Publisher extends AsyncTask<VideoFile,String,String>{
+    private class Publisher extends AsyncTask<Void,String,String>{
 
         Socket broker = null;
         ObjectInputStream in = null;
@@ -225,7 +226,7 @@ public class Upload extends Fragment implements View.OnClickListener{
 
 
         @Override
-        protected String doInBackground(VideoFile... videos) {
+        protected String doInBackground(Void... voids) {
             /*hashtag = hashtags.getText().toString();
             int toSubHaSH = Util.getModMd5(hashtag);
             ArrayList<Integer> hashes = new ArrayList<>();
@@ -248,6 +249,7 @@ public class Upload extends Fragment implements View.OnClickListener{
             String[] temp2 = temp.split(":");
             port = Integer.parseInt(temp2[1]);*/
             try {
+
                 broker = new Socket("10.0.2.2",4002);
                 in = new ObjectInputStream(broker.getInputStream());
                 out = new ObjectOutputStream(broker.getOutputStream());
@@ -277,6 +279,8 @@ public class Upload extends Fragment implements View.OnClickListener{
 
             return null;
         }
+
+
     }
 
 
