@@ -1,4 +1,4 @@
-package java.softeng.aueb.tiktok;
+package softeng.aueb.tiktok;
 
 import java.io.Serializable;
 import java.util.ArrayList;

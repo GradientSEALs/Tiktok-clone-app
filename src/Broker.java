@@ -1,4 +1,6 @@
 
+import softeng.aueb.tiktok.VideoFile;
+
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -9,12 +11,12 @@ public class Broker extends Node {
     private final String GLOBALIP = "192.168.1.4";
     public ArrayList<String> brokerhashtag = new ArrayList<>();
     public ArrayList<String> brokerchannelnameslist = new ArrayList<>();
-    public ArrayList<VideoFile> VideosPublisherConnection = new ArrayList<>();
+    public ArrayList<softeng.aueb.tiktok.VideoFile> VideosPublisherConnection = new ArrayList<>();
 
     public Map<String,ArrayList<String>> subs = new HashMap<>();
     public Util.Pair<String,Integer> contact;
     public Map<String,Util.Pair<String,Integer>> ChannelServerInfo = new HashMap<>();
-    public volatile HashMap<String,ArrayList<VideoFile>> channelContent = new HashMap<>();
+    public volatile HashMap<String,ArrayList<softeng.aueb.tiktok.VideoFile>> channelContent = new HashMap<>();
     public Map<String,Util.Pair<String,Integer>> VideoOwnerConnection = new HashMap<>();
     public Map<Integer,Util.Pair<String, Integer>> ListOfBrokers = new TreeMap<>();
     public HashSet<String> hashTags = new HashSet<>();
@@ -133,7 +135,7 @@ public class Broker extends Node {
                             break;
                         case 2: //publish a video
                             Util.debug("Reading video");
-                            VideoFile video = (VideoFile) ois.readObject();
+                            softeng.aueb.tiktok.VideoFile video = (VideoFile) ois.readObject();
                             VideosPublisherConnection.add(video);
                             String hashtag = (String) ois.readObject();
                             //String appip = (String) ois.readObject();
