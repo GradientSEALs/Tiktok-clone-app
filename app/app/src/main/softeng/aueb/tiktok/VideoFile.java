@@ -1,11 +1,13 @@
 package softeng.aueb.tiktok;
+
 import java.io.Serializable;
 import java.util.*;
 @SuppressWarnings("All")
 public class VideoFile implements Serializable {
     public String videoName;
     public String channelName;
-    //public JSONObject videoDetails;
+    String duration;
+    String frames;
     public String path;
     public ArrayList<String> associatedHashtags;
     private static final long serialVersionUID = -2723363051253966964L;
@@ -33,6 +35,7 @@ public class VideoFile implements Serializable {
     }
     public VideoFile(String videoName){
         this.videoName = videoName;
+        associatedHashtags = new ArrayList<>();
         /*this.videoDetails = new JSONObject();
         try {
             videoDetails.put("action","GET_VIDEO");
@@ -56,6 +59,14 @@ public class VideoFile implements Serializable {
         this.channelName = channelName;
     }
 
+    public void setDuration(String duration) {
+        this.duration = duration;
+    }
+
+    public void setFrames(String frames) {
+        this.frames = frames;
+    }
+
     public void setPath(String path) {
         this.path = path;
     }
@@ -66,6 +77,10 @@ public class VideoFile implements Serializable {
 
     public String getVideoName() {
         return videoName;
+    }
+
+    public void setAssociatedHashtags(String hashtag) {
+        this.associatedHashtags.add(hashtag);
     }
 
     @Override

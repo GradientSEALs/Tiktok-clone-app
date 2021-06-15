@@ -62,11 +62,10 @@ public class VideosAdapter extends RecyclerView.Adapter<VideosAdapter.VideoViewH
             textVideoTitle.setText(videoItem.getVideoName());
             textVideoTitle.setText(videoItem.getChannelName());
             textVideoHashtags.setText(videoItem.getAssociatedHashtags().toString());
-            videoView.setVideoPath(videoItem.path);
+            videoView.setVideoPath(String.valueOf(videoItem.path));
             videoView.setOnPreparedListener(mp -> {
                 progressBar.setVisibility(View.GONE);
                 mp.start();
-
                 float videoRatio = mp.getVideoWidth() / (float) mp.getVideoHeight();
                 float screenRatio = videoView.getWidth() / (float) videoView.getHeight();
 

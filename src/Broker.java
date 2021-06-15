@@ -1,3 +1,5 @@
+
+import softeng.aueb.tiktok.VideoFile;
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -5,15 +7,15 @@ import java.util.*;
 
 @SuppressWarnings("all")
 public class Broker extends Node {
-
+    private final String GLOBALIP = "192.168.1.4";
     public ArrayList<String> brokerhashtag = new ArrayList<>();
     public ArrayList<String> brokerchannelnameslist = new ArrayList<>();
-    public ArrayList<softeng.aueb.tiktok.VideoFile> VideosPublisherConnection = new ArrayList<>();
+    public ArrayList<VideoFile> VideosPublisherConnection = new ArrayList<>();
 
     public Map<String,ArrayList<String>> subs = new HashMap<>();
     public Util.Pair<String,Integer> contact;
     public Map<String,Util.Pair<String,Integer>> ChannelServerInfo = new HashMap<>();
-    public volatile HashMap<String,ArrayList<softeng.aueb.tiktok.VideoFile>> channelContent = new HashMap<>();
+    public volatile HashMap<String,ArrayList<VideoFile>> channelContent = new HashMap<>();
     public Map<String,Util.Pair<String,Integer>> VideoOwnerConnection = new HashMap<>();
     public Map<Integer,Util.Pair<String, Integer>> ListOfBrokers = new TreeMap<>();
     public HashSet<String> hashTags = new HashSet<>();
@@ -47,6 +49,7 @@ public class Broker extends Node {
         try {
             Broker broker = new Broker();
             broker.init(args[0],args[1],args[2],args[3]);
+            broker.ChannelServerInfo.put("test",new Util.Pair<String,Integer>("localhost",7000));
             broker.channels.add("ody");
             broker.run();
         } catch (UnknownHostException e) {
@@ -94,7 +97,7 @@ public class Broker extends Node {
                             String channelName = (String) ois.readObject();
                             System.out.println(channelName);
                             int channelHash = Util.getModMd5(channelName);
-                            channelHash /= 3;
+                            channelHash %= 3;
                             System.out.println(hashid + "====" + channelHash);
                             for (int brokerID : ListOfBrokers.keySet()) {
                                 System.out.println(hashid + "====" + brokerID);
@@ -116,32 +119,32 @@ public class Broker extends Node {
                                     oos.flush();
                                     _stop();
                                     System.out.println("AppNode has left the broker");
-                                    //oos.writeObject(ListOfBrokers);
-                                    //oos.flush();
                                     break;
+
                                 } else continue;
                             }
-                            ArrayList<String> ipports = new ArrayList<>();
-                            for (Util.Pair<String, Integer> ipport : ListOfBrokers.values()){
+                            channels.add(channelName);
+                            //ArrayList<String> ipports = new ArrayList<>();
+                            /*for (Util.Pair<String, Integer> ipport : ListOfBrokers.values()){
                                 String str = ipport.item1+":"+ipport.item2;
                                 ipports.add(str);
                             }
                             oos.writeObject(ipports);
-                            oos.flush();
+                            oos.flush();*/
                             break;
                         case 2: //publish a video
                             Util.debug("Reading video");
-                            softeng.aueb.tiktok.VideoFile video = (softeng.aueb.tiktok.VideoFile) ois.readObject();
+                            VideoFile video = (VideoFile) ois.readObject();
                             VideosPublisherConnection.add(video);
                             String hashtag = (String) ois.readObject();
                             //String appip = (String) ois.readObject();
                             //int appport = (int) ois.readObject();
                             channelName = video.getChannelName();
-                            //VideoOwnerConnection.put(video.getVideoName(),new Util.Pair<String,Integer>(appip, appport));
+                            video.setPath(directory+"/"+video.getVideoName());
                             boolean contains = channelContent.containsKey(channelName);
                             System.out.println("Starting to add channel content");
                             if (!contains)
-                                channelContent.put(channelName, new ArrayList<softeng.aueb.tiktok.VideoFile>());
+                                channelContent.put(channelName, new ArrayList<VideoFile>());
                             channelContent.get(channelName).add(video);
                             hashTags.add(hashtag);
                             Util.debug("Added hashtag to broker's hashtag");
@@ -150,7 +153,6 @@ public class Broker extends Node {
                             FileOutputStream out = new FileOutputStream(directory+"/"+video.getVideoName());
                             Util.debug(directory+"/"+video.getVideoName());
                             byte[] bytes = new byte[512];
-                            int count = 0;
                             try {
                                 for (;;) {
                                     bytes = (byte[]) ois.readObject();
@@ -165,14 +167,17 @@ public class Broker extends Node {
                                 Util.debug("file closed");
                                 System.out.println("Finished video receiving");*/
                             }
+                            ChannelServerInfo.put(channelName,new Util.Pair<String,Integer>(GLOBALIP,7000));
+                            System.out.println(channelContent.toString());
                             Util.debug("file donwloaded");
                             out.close();
                             Util.debug("file closed");
                             System.out.println("Finished video receiving");
+
                             break;
 
-                        case 8:
-                            /** Process to send videos to subscribers  **/
+                        /*case 8:
+                            *//** Process to send videos to subscribers  **//*
                             channelName = (String) ois.readObject();
                             Iterator it = subs.entrySet().iterator();
                             while (it.hasNext()){
@@ -202,7 +207,7 @@ public class Broker extends Node {
                                 }
                              }
 
-                            break;
+                            break;*/
 
 
                         case 9:
@@ -271,12 +276,16 @@ public class Broker extends Node {
                             }else if(hashTags.contains(subchannel)) {
                                 if (!contains2) {
                                     subs.put(subchannel, new ArrayList<String>());
+                                    System.out.println("Subscribition complete");
+                                    System.out.println(subs);
                                 }
                             }
                             else{
                                 System.out.println("An error has occured");
                             }
 
+                            Util.Pair<String,Integer> infos = ChannelServerInfo.get(subchannel);
+                            pushToSub(subchannel,infos.item1,infos.item2);
                             break;
 
                         case 5: //process of returning channels or hashtags requested by AppNodes
@@ -284,7 +293,7 @@ public class Broker extends Node {
                             String desired = (String) ois.readObject();
                             channelname = (String) ois.readObject();
                             HashSet<String> interestingvideos = new HashSet<>();
-                            for (softeng.aueb.tiktok.VideoFile v : VideosPublisherConnection) {
+                            for (VideoFile v : VideosPublisherConnection) {
                                 if ((v.getChannelName().equals(desired) || v.associatedHashtags.contains(desired))
                                         && !v.getChannelName().equals(channelname)) {
                                     //checks if we want this video
@@ -306,7 +315,7 @@ public class Broker extends Node {
                             channelname = (String) ois.readObject();
                             boolean exists = false;
 
-                            for(softeng.aueb.tiktok.VideoFile v: VideosPublisherConnection){
+                            for(VideoFile v: VideosPublisherConnection){
                                 if(v.videoName.equals(filename) && !v.getChannelName().equals(channelname)){
                                     //checks if video exists and if the publisher is the AppNode asking
                                     exists=true;
@@ -345,6 +354,71 @@ public class Broker extends Node {
         {
             exit = true;
         }
+
+
+        public void pushToAllSubs() throws IOException, ClassNotFoundException {
+            Iterator it = subs.entrySet().iterator();
+            while (it.hasNext()){
+                Map.Entry pair = (Map.Entry) it.next();
+                String subbed = (String) pair.getKey();
+                ArrayList<String> info = (ArrayList<String>) pair.getValue();
+                Util.Pair<String,Integer> contactInfo;
+                if (ChannelServerInfo.containsKey(subbed)){
+                    contactInfo = ChannelServerInfo.get(subbed);
+                }
+                else continue;
+                Socket subscriber = new Socket(contactInfo.item1,contactInfo.item2);
+                ObjectOutputStream outSub = new ObjectOutputStream(subscriber.getOutputStream());
+                ObjectInputStream inSub = new ObjectInputStream(subscriber.getInputStream());
+                File folder = new File(""+directory);
+                File[] listOfFiles = folder.listFiles();
+
+                for (File file : listOfFiles) {
+                    if (file.isFile()) {
+                        byte[] fileData = Util.loadVideoFromDiskToRam(file.getName());
+                        List<byte[]> chunckedData = Util.chunkifyFile(fileData);
+                        for (byte[] buffer : chunckedData){
+                            outSub.writeObject(buffer);
+                            outSub.flush();
+                        }
+                        outSub.writeObject(null);
+                        outSub.flush();
+                    }
+                }
+            }
+        }
+
+        public void pushToSub(String creator,String ip, int port) throws IOException, ClassNotFoundException{
+            Socket subscriber = new Socket(ip,port);
+            ObjectOutputStream outSub = new ObjectOutputStream(subscriber.getOutputStream());
+            ObjectInputStream inSub = new ObjectInputStream(subscriber.getInputStream());
+            ArrayList<VideoFile> videos = channelContent.get(creator);
+            if (videos.isEmpty()){
+                outSub.writeByte(0);
+                outSub.flush();
+                return;
+            }
+
+            for (VideoFile video : videos){
+                outSub.writeByte(1);
+                outSub.flush();
+
+                outSub.writeObject(video.getVideoName());
+                outSub.flush();
+
+                byte[] fileData = Util.loadVideoFromDiskToRam(video.path);
+                List<byte[]> chunckedData = Util.chunkifyFile(fileData);
+                for (byte[] buffer : chunckedData){
+                    outSub.writeObject(buffer);
+                    outSub.flush();
+                }
+                outSub.writeObject(null);
+                outSub.flush();
+            }
+            outSub.writeByte(0);
+            outSub.flush();
+        }
+
     }
     public void init(String ip,String port, String pathname,String directory) throws UnknownHostException {
         hashid = Util.getModMd5(ip+","+port);
@@ -385,7 +459,7 @@ public class Broker extends Node {
 
     }*/
 
-    public ArrayList<softeng.aueb.tiktok.VideoFile> getVideos() {
+    public ArrayList<VideoFile> getVideos() {
         return VideosPublisherConnection;
     }
 

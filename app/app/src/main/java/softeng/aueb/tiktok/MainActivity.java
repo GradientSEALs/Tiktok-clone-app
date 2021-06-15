@@ -79,7 +79,7 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse {
             do {
                 try {
 
-                    requestSocket = new Socket("192.168.2.9", _port);
+                    requestSocket = new Socket("192.168.1.4", _port);
                     out = new ObjectOutputStream(requestSocket.getOutputStream());
                     in = new ObjectInputStream(requestSocket.getInputStream());
 
@@ -118,7 +118,6 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse {
         }
         protected void onPostExecute(Long result) {
             delegate.processFinish(brokers,appBroker);
-            Log.w("hello","TElos");
         }
 
     }

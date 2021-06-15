@@ -51,16 +51,16 @@ public class Subscribe extends Fragment implements View.OnClickListener{
         //port = tiktok.port;
         myChannelName = tiktok.username;
         //brokers = tiktok.brokers;
-        brokers.add("10.0.2.2:4000");
-        brokers.add("10.0.2.2:4001");
-        brokers.add("10.0.2.2:4002");
+        brokers.add("192.168.1.4:4000");
+        brokers.add("192.168.1.4:4001");
+        brokers.add("192.168.1.4:4002");
     }
 
     @Override
     public void onClick(View v) {
-        new Subscriber().execute(hashtags.getText().toString());
+        Subscriber s = new Subscriber();
+        s.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,hashtags.getText().toString());
     }
-
 
     private class Subscriber extends AsyncTask<String, String ,String>{
 
@@ -72,6 +72,7 @@ public class Subscribe extends Fragment implements View.OnClickListener{
         protected String doInBackground(String... strings) {
             toSub = strings[0];
             int toSubHaSH = Util.getModMd5(toSub);
+            toSubHaSH/=3;
             ArrayList<Integer> hashes = new ArrayList<>();
             for (String ip : brokers){
                 hashes.add(Util.getModMd5(ip));
@@ -91,7 +92,7 @@ public class Subscribe extends Fragment implements View.OnClickListener{
             String[] temp2 = temp.split(":");
             port = Integer.parseInt(temp2[1]);
             try {
-                requestSocket = new Socket("10.0.2.2",port);
+                requestSocket = new Socket("192.168.1.4",port);
                 in  = new ObjectInputStream(requestSocket.getInputStream());
                 out = new ObjectOutputStream(requestSocket.getOutputStream());
 
@@ -110,6 +111,7 @@ public class Subscribe extends Fragment implements View.OnClickListener{
             }
             return null;
         }
+
     }
 }
 

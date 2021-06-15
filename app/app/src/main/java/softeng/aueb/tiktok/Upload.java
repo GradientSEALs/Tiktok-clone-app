@@ -227,8 +227,9 @@ public class Upload extends Fragment implements View.OnClickListener{
 
         @Override
         protected String doInBackground(Void... voids) {
-            /*hashtag = hashtags.getText().toString();
+            hashtag = hashtags.getText().toString();
             int toSubHaSH = Util.getModMd5(hashtag);
+            toSubHaSH %= 3 ;
             ArrayList<Integer> hashes = new ArrayList<>();
             for (String ip : brokers){
                 hashes.add(Util.getModMd5(ip));
@@ -247,10 +248,10 @@ public class Upload extends Fragment implements View.OnClickListener{
                 }
             }
             String[] temp2 = temp.split(":");
-            port = Integer.parseInt(temp2[1]);*/
+            port = Integer.parseInt(temp2[1]);
             try {
 
-                broker = new Socket("192.168.2.9",4002);
+                broker = new Socket("192.168.1.4",port);
                 in = new ObjectInputStream(broker.getInputStream());
                 out = new ObjectOutputStream(broker.getOutputStream());
                 //DataOutputStream out2 = new DataOutputStream(broker.getOutputStream());
@@ -266,13 +267,11 @@ public class Upload extends Fragment implements View.OnClickListener{
                 byte[] videoData = Util.loadVideoFromDiskToRam(video);
                 List<byte[]> chunckedVideo = Util.chunkifyFile(videoData);
                 for (byte[] data : chunckedVideo) {
-                    Log.d("DEBUG", Base64.getEncoder().encodeToString(data));
                     out.writeObject(data);
                     out.flush();
                 }
                 out.writeObject(null);
                 out.flush();
-                Log.d("DEBUG","TSIMPOUKIA");
             } catch (IOException e) {
                 e.printStackTrace();
             }
