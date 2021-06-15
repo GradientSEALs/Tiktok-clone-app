@@ -1,7 +1,8 @@
-package softeng.aueb.tiktok;
+package java.softeng.aueb.tiktok;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+
 @SuppressWarnings("All")
 public class VideoFile implements Serializable {
     public String videoName;
@@ -12,13 +13,13 @@ public class VideoFile implements Serializable {
     public ArrayList<String> associatedHashtags;
     private static final long serialVersionUID = -2723363051253966964L;
 
-    public VideoFile(String videoName,String channelName,ArrayList<String> associatedHashtags){
+    public VideoFile(String videoName, String channelName, ArrayList<String> associatedHashtags){
         this.videoName = videoName;
         this.channelName = channelName;
         this.associatedHashtags = associatedHashtags;
     }
 
-    public VideoFile(String videoName, String channelName,String path, String[] hashtags){
+    public VideoFile(String videoName, String channelName, String path, String[] hashtags){
         this.videoName = videoName;
         this.channelName = channelName;;
         this.path = path;
