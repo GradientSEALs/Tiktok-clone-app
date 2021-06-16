@@ -49,6 +49,7 @@ public class Tiktokactivity extends AppCompatActivity {
     ArrayList<String> brokers;
     ServerSocket server;
     File file;
+    ArrayList<VideoFile> videos = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,7 +61,8 @@ public class Tiktokactivity extends AppCompatActivity {
         else {
             askPermission();
         }
-        new Consumer().execute();
+        Thread server = new Thread(new Consumer());
+        server.start();
         super.onCreate(savedInstanceState);
         username = getIntent().getStringExtra("username");
         brokers = getIntent().getExtras().getStringArrayList("brokers");
@@ -104,7 +106,7 @@ public class Tiktokactivity extends AppCompatActivity {
     }
 
     private void createDirectory(String foldername){
-        file = new File(Environment.getDataDirectory(),foldername);
+        file = new File(Environment.getExternalStorageDirectory(),foldername);
         if(!file.exists()){
             file.mkdir();
             Toast.makeText(Tiktokactivity.this,"Successful",Toast.LENGTH_SHORT).show();
@@ -127,40 +129,46 @@ public class Tiktokactivity extends AppCompatActivity {
             return false;
         }
     }
-    private class Consumer extends AsyncTask<Socket,String,String> {
-
+    private class Consumer implements Runnable {
 
         Socket conn;
-        ObjectOutputStream out;
         ObjectInputStream in;
-
+        ObjectOutputStream out;
+        private boolean flag = true;
         @Override
-        protected String doInBackground(Socket... sockets) {
+        public void run() {
             try {
                 server = new ServerSocket(7000);
-                conn = server.accept();
-                out = new ObjectOutputStream(conn.getOutputStream());
-                in = new ObjectInputStream(conn.getInputStream());
+                while (flag) {
+                    conn = server.accept();
+                    out = new ObjectOutputStream(conn.getOutputStream());
+                    in = new ObjectInputStream(conn.getInputStream());
 
-                byte resp = in.readByte();
-                if (resp == 0)
-                    return null;
-                while(in.readByte()==1){
-                String videoName = (String) in.readObject();
-                FileOutputStream fout = new FileOutputStream(file+"/"+videoName);
-                byte[] bytes = new byte[512];
-                try {
-                    for (; ; ) {
-                        bytes = (byte[]) in.readObject();
-                        if (bytes == null) {
-                            break;
+                    byte resp = in.readByte();
+                    if (resp == 0)
+                        _stop();
+                    while (resp == 1) {
+                        String videoName = (String) in.readObject();
+                        VideoFile video = new VideoFile(videoName);
+                        File newVideo = new File(file + "/" + videoName);
+                        video.setPath(newVideo.getPath());
+                        videos.add(video);
+                        FileOutputStream fout = new FileOutputStream(newVideo);
+                        byte[] bytes = new byte[512];
+                        try {
+                            for (; ; ) {
+                                bytes = (byte[]) in.readObject();
+                                if (bytes == null) {
+                                    break;
+                                }
+                                fout.write(bytes);
+
+                            }
+                            fout.close();
+                            resp = in.readByte();
+                        } catch (IOException e) {
+                            e.printStackTrace();
                         }
-                        fout.write(bytes);
-
-                    }
-                    fout.close();
-                    } catch (IOException e) {
-                     e.printStackTrace();
                     }
                 }
             } catch (FileNotFoundException e) {
@@ -170,7 +178,10 @@ public class Tiktokactivity extends AppCompatActivity {
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();
             }
-            return null;
+        }
+
+        private void _stop(){
+            flag = false;
         }
     }
 }

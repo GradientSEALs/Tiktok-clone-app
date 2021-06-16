@@ -2,6 +2,7 @@ package softeng.aueb.tiktok;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -51,9 +52,9 @@ public class Subscribe extends Fragment implements View.OnClickListener{
         //port = tiktok.port;
         myChannelName = tiktok.username;
         //brokers = tiktok.brokers;
-        brokers.add("192.168.1.4:4000");
-        brokers.add("192.168.1.4:4001");
-        brokers.add("192.168.1.4:4002");
+        brokers.add("192.168.1.4,4000");
+        brokers.add("192.168.1.4,4001");
+        brokers.add("192.168.1.4,4002");
     }
 
     @Override
@@ -72,7 +73,8 @@ public class Subscribe extends Fragment implements View.OnClickListener{
         protected String doInBackground(String... strings) {
             toSub = strings[0];
             int toSubHaSH = Util.getModMd5(toSub);
-            toSubHaSH/=3;
+            toSubHaSH /= 3;
+            Log.v("NNAMe",Integer.toString(toSubHaSH));
             ArrayList<Integer> hashes = new ArrayList<>();
             for (String ip : brokers){
                 hashes.add(Util.getModMd5(ip));
@@ -81,7 +83,7 @@ public class Subscribe extends Fragment implements View.OnClickListener{
             brokers.sort((o1, o2) -> {
                 int hash1 = Util.getModMd5(o1);
                 int hash2 = Util.getModMd5(o2);
-                return Integer.compare(hash1, hash2);
+                return Integer.compare(hash2, hash1);
             }); //localhost:4000
             String temp="";
             for (int i = 0; i<3; i++){
@@ -89,7 +91,7 @@ public class Subscribe extends Fragment implements View.OnClickListener{
                     temp = brokers.get(i);
                 }
             }
-            String[] temp2 = temp.split(":");
+            String[] temp2 = temp.split(",");
             port = Integer.parseInt(temp2[1]);
             try {
                 requestSocket = new Socket("192.168.1.4",port);

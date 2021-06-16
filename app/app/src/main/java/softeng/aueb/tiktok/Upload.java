@@ -91,9 +91,9 @@ public class Upload extends Fragment implements View.OnClickListener{
         assert tiktok != null;
         //port = tiktok.port;
         channelname = tiktok.username;
-        brokers.add("10.0.2.2:4000");
-        brokers.add("10.0.2.2:4001");
-        brokers.add("10.0.2.2:4002");
+        brokers.add("192.168.1.3,4000");
+        brokers.add("192.168.1.3,4001");
+        brokers.add("192.168.1.3,4002");
     }
 
     @SuppressLint("NonConstantResourceId")
@@ -229,16 +229,17 @@ public class Upload extends Fragment implements View.OnClickListener{
         protected String doInBackground(Void... voids) {
             hashtag = hashtags.getText().toString();
             int toSubHaSH = Util.getModMd5(hashtag);
-            toSubHaSH %= 3 ;
+            toSubHaSH /= 3;
             ArrayList<Integer> hashes = new ArrayList<>();
             for (String ip : brokers){
                 hashes.add(Util.getModMd5(ip));
             }
+            Log.v("NNAMe",Integer.toString(toSubHaSH));
             Collections.sort(hashes);
             brokers.sort((o1, o2) -> {
                 int hash1 = Util.getModMd5(o1);
                 int hash2 = Util.getModMd5(o2);
-                return Integer.compare(hash1, hash2);
+                return Integer.compare(hash2, hash1);
             });
             String temp = "";
 
@@ -247,7 +248,7 @@ public class Upload extends Fragment implements View.OnClickListener{
                     temp = brokers.get(i);
                 }
             }
-            String[] temp2 = temp.split(":");
+            String[] temp2 = temp.split(",");
             port = Integer.parseInt(temp2[1]);
             try {
 

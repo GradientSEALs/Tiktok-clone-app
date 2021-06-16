@@ -98,7 +98,7 @@ public class Broker extends Node {
                             String channelName = (String) ois.readObject();
                             System.out.println(channelName);
                             int channelHash = Util.getModMd5(channelName);
-                            channelHash %= 3;
+                            channelHash /= 3;
                             System.out.println(hashid + "====" + channelHash);
                             for (int brokerID : ListOfBrokers.keySet()) {
                                 System.out.println(hashid + "====" + brokerID);
@@ -124,6 +124,8 @@ public class Broker extends Node {
 
                                 } else continue;
                             }
+                            System.out.println(conn.getInetAddress().getHostAddress());
+                            ChannelServerInfo.put(channelName,new Util.Pair<String,Integer>(conn.getInetAddress().getHostAddress(),7000));
                             channels.add(channelName);
                             //ArrayList<String> ipports = new ArrayList<>();
                             /*for (Util.Pair<String, Integer> ipport : ListOfBrokers.values()){
@@ -168,7 +170,7 @@ public class Broker extends Node {
                                 Util.debug("file closed");
                                 System.out.println("Finished video receiving");*/
                             }
-                            ChannelServerInfo.put(channelName,new Util.Pair<String,Integer>(GLOBALIP,7000));
+
                             System.out.println(channelContent.toString());
                             Util.debug("file donwloaded");
                             out.close();
@@ -285,8 +287,8 @@ public class Broker extends Node {
                                 System.out.println("An error has occured");
                             }
 
-                            Util.Pair<String,Integer> infos = ChannelServerInfo.get(subchannel);
-                            pushToSub(subchannel,infos.item1,infos.item2);
+                            Util.Pair<String,Integer> infos = ChannelServerInfo.get(channame);
+                            pushToSub(channame,infos.item1, infos.item2);
                             break;
 
                         case 5: //process of returning channels or hashtags requested by AppNodes
@@ -394,19 +396,29 @@ public class Broker extends Node {
             ObjectOutputStream outSub = new ObjectOutputStream(subscriber.getOutputStream());
             ObjectInputStream inSub = new ObjectInputStream(subscriber.getInputStream());
             ArrayList<VideoFile> videos = channelContent.get(creator);
+
+            if (videos == null){
+                System.out.println("NULL");
+                outSub.writeByte(0);
+                outSub.flush();
+                return;
+            }
             if (videos.isEmpty()){
+                System.out.println("EMPTY");
                 outSub.writeByte(0);
                 outSub.flush();
                 return;
             }
 
             for (VideoFile video : videos){
+
                 outSub.writeByte(1);
                 outSub.flush();
+                System.out.println("SENT BYTE");
 
-                outSub.writeObject(video.getVideoName());
+                outSub.writeObject(video);
                 outSub.flush();
-
+                System.out.println("SENT VIDEO");
                 byte[] fileData = Util.loadVideoFromDiskToRam(video.path);
                 List<byte[]> chunckedData = Util.chunkifyFile(fileData);
                 for (byte[] buffer : chunckedData){
