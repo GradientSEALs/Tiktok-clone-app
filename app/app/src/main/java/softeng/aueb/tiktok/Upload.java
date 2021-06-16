@@ -239,7 +239,7 @@ public class Upload extends Fragment implements View.OnClickListener{
             brokers.sort((o1, o2) -> {
                 int hash1 = Util.getModMd5(o1);
                 int hash2 = Util.getModMd5(o2);
-                return Integer.compare(hash2, hash1);
+                return Integer.compare(hash1, hash2);
             });
             String temp = "";
 
