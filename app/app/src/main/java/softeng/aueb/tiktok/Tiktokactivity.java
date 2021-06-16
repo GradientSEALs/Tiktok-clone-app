@@ -1,17 +1,26 @@
 package softeng.aueb.tiktok;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 
 import com.google.android.material.tabs.TabLayout;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.viewpager.widget.ViewPager;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Environment;
+import android.util.Log;
 import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -29,7 +38,8 @@ import softeng.aueb.tiktok.databinding.ActivityTiktokactivityBinding;
 @SuppressWarnings("all")
 public class Tiktokactivity extends AppCompatActivity {
 
-    File directory = new File(Environment.getExternalStorageState(),"tiktok") ;
+    private static final int REQUEST_CODE = 7;
+    private final String FOLDERNAME = "tiktok";
     ImageButton capture;
     ImageButton gallery;
     TextView _username;
@@ -38,19 +48,17 @@ public class Tiktokactivity extends AppCompatActivity {
     String username;
     ArrayList<String> brokers;
     ServerSocket server;
+    File file;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
-        if (!directory.exists()){
-            directory.mkdirs();
 
-            if(!directory.isDirectory()){
-                AlertDialog.Builder builder = new AlertDialog.Builder(Tiktokactivity.this);
-                String message = "Failed to create directory";
-                builder.setMessage(message);
-                builder.show();
-            }
+        if (ContextCompat.checkSelfPermission(Tiktokactivity.this,Manifest.permission.WRITE_EXTERNAL_STORAGE)==PackageManager.PERMISSION_GRANTED){
+            createDirectory(FOLDERNAME);
+        }
+        else {
+            askPermission();
         }
         new Consumer().execute();
         super.onCreate(savedInstanceState);
@@ -76,11 +84,48 @@ public class Tiktokactivity extends AppCompatActivity {
 
 
 
+    }
 
+    private void askPermission(){
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_CODE);
+    }
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull @NotNull String [] permissions, @NonNull @NotNull int[] grantResults){
+        if (requestCode == REQUEST_CODE){
+            if (grantResults.length>0 && grantResults[0] == PackageManager.PERMISSION_GRANTED);{
+                createDirectory(FOLDERNAME);
+            }
+        }
+        else{
+            Toast.makeText(Tiktokactivity.this,"Permission Denied",Toast.LENGTH_SHORT).show();
+        }
 
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+    }
 
+    private void createDirectory(String foldername){
+        file = new File(Environment.getDataDirectory(),foldername);
+        if(!file.exists()){
+            file.mkdir();
+            Toast.makeText(Tiktokactivity.this,"Successful",Toast.LENGTH_SHORT).show();
+        }else
+        {
+            Toast.makeText(Tiktokactivity.this,"Folder Already Exists",Toast.LENGTH_SHORT).show();
+        }
 
+    }
 
+    public  boolean isStoragePermissionGranted() {
+        if (checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                == PackageManager.PERMISSION_GRANTED) {
+            Log.v("TAG", "Permission is granted");
+            return true;
+        } else {
+
+            Log.v("TAG", "Permission is revoked");
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
+            return false;
+        }
     }
     private class Consumer extends AsyncTask<Socket,String,String> {
 
@@ -102,7 +147,7 @@ public class Tiktokactivity extends AppCompatActivity {
                     return null;
                 while(in.readByte()==1){
                 String videoName = (String) in.readObject();
-                FileOutputStream fout = new FileOutputStream(directory+"/"+videoName);
+                FileOutputStream fout = new FileOutputStream(file+"/"+videoName);
                 byte[] bytes = new byte[512];
                 try {
                     for (; ; ) {
