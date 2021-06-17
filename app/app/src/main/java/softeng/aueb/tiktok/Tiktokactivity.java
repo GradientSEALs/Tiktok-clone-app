@@ -61,7 +61,7 @@ public class Tiktokactivity extends AppCompatActivity {
         else {
             askPermission();
         }
-        Thread server = new Thread(new Consumer());
+        Thread server = new Thread(new Server());
         server.start();
         super.onCreate(savedInstanceState);
         username = getIntent().getStringExtra("username");
@@ -129,59 +129,84 @@ public class Tiktokactivity extends AppCompatActivity {
             return false;
         }
     }
+
+    private class Server implements Runnable{
+
+        @Override
+        public void run() {
+            try {
+                server = new ServerSocket(7000);
+                while (true) {
+                    Socket conn =  server.accept();
+                    Thread consumer = new Thread(new Consumer(conn));
+                    consumer.start();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+
+        }
+    }
+
+
+
     private class Consumer implements Runnable {
 
         Socket conn;
         ObjectInputStream in;
         ObjectOutputStream out;
-        private boolean flag = true;
+
+        Consumer(Socket conn){
+            this.conn = conn;
+        }
+
         @Override
         public void run() {
             try {
-                server = new ServerSocket(7000);
-                while (flag) {
-                    conn = server.accept();
-                    out = new ObjectOutputStream(conn.getOutputStream());
-                    in = new ObjectInputStream(conn.getInputStream());
+                out = new ObjectOutputStream(conn.getOutputStream());
+                in = new ObjectInputStream(conn.getInputStream());
 
-                    byte resp = in.readByte();
-                    if (resp == 0)
-                        _stop();
-                    while (resp == 1) {
-                        String videoName = (String) in.readObject();
-                        VideoFile video = new VideoFile(videoName);
-                        File newVideo = new File(file + "/" + videoName);
-                        video.setPath(newVideo.getPath());
-                        videos.add(video);
-                        FileOutputStream fout = new FileOutputStream(newVideo);
-                        byte[] bytes = new byte[512];
-                        try {
-                            for (; ; ) {
-                                bytes = (byte[]) in.readObject();
-                                if (bytes == null) {
-                                    break;
-                                }
-                                fout.write(bytes);
-
+                byte resp = in.readByte();
+                while (resp == 1) {
+                    VideoFile video = (VideoFile) in.readObject();
+                    File newVideo = new File(file + "/" + video.getVideoName());
+                    video.setPath(newVideo.getPath());
+                    videos.add(video);
+                    FileOutputStream fout = new FileOutputStream(newVideo);
+                    byte[] bytes = new byte[512];
+                    try {
+                        for (; ; ) {
+                            bytes = (byte[]) in.readObject();
+                            if (bytes == null) {
+                                break;
                             }
-                            fout.close();
-                            resp = in.readByte();
-                        } catch (IOException e) {
-                            e.printStackTrace();
+                            fout.write(bytes);
+
                         }
+                        fout.close();
+                        resp = in.readByte();
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
                 }
+
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();
+            }finally {
+                try {
+                    in.close();
+                    out.close();
+                    conn.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
 
-        private void _stop(){
-            flag = false;
-        }
     }
 }

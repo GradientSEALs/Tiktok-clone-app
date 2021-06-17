@@ -23,6 +23,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.TreeMap;
 
 
 public class Subscribe extends Fragment implements View.OnClickListener{
@@ -32,7 +33,7 @@ public class Subscribe extends Fragment implements View.OnClickListener{
     View view;
     int port;
     String myChannelName;
-    ArrayList<String> brokers = new ArrayList<>();
+    TreeMap<Integer, String> brokers = new TreeMap<>();
 
     @Nullable
     @Override
@@ -52,9 +53,9 @@ public class Subscribe extends Fragment implements View.OnClickListener{
         //port = tiktok.port;
         myChannelName = tiktok.username;
         //brokers = tiktok.brokers;
-        brokers.add("192.168.1.4,4000");
-        brokers.add("192.168.1.4,4001");
-        brokers.add("192.168.1.4,4002");
+        brokers.put(Util.getModMd5("192.168.1.4,4000"),"192.168.1.4,4000");
+        brokers.put(Util.getModMd5("192.168.1.4,4001"),"192.168.1.4,4001");
+        brokers.put(Util.getModMd5("192.168.1.4,4002"),"192.168.1.4,4002");
     }
 
     @Override
@@ -75,24 +76,16 @@ public class Subscribe extends Fragment implements View.OnClickListener{
             int toSubHaSH = Util.getModMd5(toSub);
             toSubHaSH /= 3;
             Log.v("NNAMe",Integer.toString(toSubHaSH));
-            ArrayList<Integer> hashes = new ArrayList<>();
-            for (String ip : brokers){
-                hashes.add(Util.getModMd5(ip));
-            }
-            Collections.sort(hashes);
-            brokers.sort((o1, o2) -> {
-                int hash1 = Util.getModMd5(o1);
-                int hash2 = Util.getModMd5(o2);
-                return Integer.compare(hash1, hash2);
-            }); //localhost:4000
             String temp="";
-            for (int i = 0; i<3; i++){
-                if (toSubHaSH< hashes.get(i)){
+            for (int i : brokers.keySet()){
+                if (toSubHaSH < i){
                     temp = brokers.get(i);
+                    break;
                 }
             }
             String[] temp2 = temp.split(",");
             port = Integer.parseInt(temp2[1]);
+            Log.v("tag",myChannelName);
             try {
                 requestSocket = new Socket("192.168.1.4",port);
                 in  = new ObjectInputStream(requestSocket.getInputStream());

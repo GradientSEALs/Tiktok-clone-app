@@ -67,7 +67,7 @@ public class Broker extends Node {
             while (true) {
                 Socket socket = serverSocket.accept();
                 System.out.println("New client has connected");
-                System.out.println("Connection received from " + socket.getInetAddress().getHostName() + " : " + socket.getPort());
+                System.out.println("Connection received from " + socket.getInetAddress().getHostAddress() + " : " + socket.getPort());
                 handler = new Handler(socket);
                 handler.start();
             }
@@ -145,10 +145,14 @@ public class Broker extends Node {
                             channelName = video.getChannelName();
                             video.setPath(directory+"/"+video.getVideoName());
                             boolean contains = channelContent.containsKey(channelName);
+                            boolean contains_ = channelContent.containsKey(hashtag);
                             System.out.println("Starting to add channel content");
                             if (!contains)
                                 channelContent.put(channelName, new ArrayList<VideoFile>());
+                            if (!contains_)
+                                channelContent.put(hashtag, new ArrayList<VideoFile>());
                             channelContent.get(channelName).add(video);
+                            channelContent.get(hashtag).add(video);
                             hashTags.add(hashtag);
                             Util.debug("Added hashtag to broker's hashtag");
                             channels.add(video.getChannelName());
@@ -165,10 +169,7 @@ public class Broker extends Node {
                                     out.write(bytes);
                                 }
                             }catch (EOFException exc){
-                                /*Util.debug("file donwloaded");
-                                out.close();
-                                Util.debug("file closed");
-                                System.out.println("Finished video receiving");*/
+                                System.out.println("Ton pairneis");
                             }
 
                             System.out.println(channelContent.toString());
@@ -176,7 +177,7 @@ public class Broker extends Node {
                             out.close();
                             Util.debug("file closed");
                             System.out.println("Finished video receiving");
-
+                            _stop();
                             break;
 
                         /*case 8:
@@ -266,7 +267,7 @@ public class Broker extends Node {
                         case 7: //gets the channelname that AppNode wants to subscribe
                             String channame = (String) ois.readObject(); //channelname giving the order
                             String subchannel = (String) ois.readObject(); //channel that we want to sub
-
+                            System.out.println(subchannel);
                             boolean contains2 = subs.containsKey(subchannel);
 
                             if(channels.contains(subchannel)) {
@@ -279,16 +280,18 @@ public class Broker extends Node {
                             }else if(hashTags.contains(subchannel)) {
                                 if (!contains2) {
                                     subs.put(subchannel, new ArrayList<String>());
-                                    System.out.println("Subscribition complete");
-                                    System.out.println(subs);
                                 }
+                                subs.get(subchannel).add(channame);
+                                System.out.println("Subscribition complete");
+                                System.out.println(subs);
+
                             }
                             else{
                                 System.out.println("An error has occured");
                             }
-
+                            System.out.println(channame);
                             Util.Pair<String,Integer> infos = ChannelServerInfo.get(channame);
-                            pushToSub(channame,infos.item1, infos.item2);
+                            pushToSub(subchannel,infos.item1, infos.item2);
                             break;
 
                         case 5: //process of returning channels or hashtags requested by AppNodes
@@ -395,6 +398,7 @@ public class Broker extends Node {
             Socket subscriber = new Socket(ip,port);
             ObjectOutputStream outSub = new ObjectOutputStream(subscriber.getOutputStream());
             ObjectInputStream inSub = new ObjectInputStream(subscriber.getInputStream());
+            System.out.println(channelContent);
             ArrayList<VideoFile> videos = channelContent.get(creator);
 
             if (videos == null){
@@ -420,8 +424,11 @@ public class Broker extends Node {
                 outSub.flush();
                 System.out.println("SENT VIDEO");
                 byte[] fileData = Util.loadVideoFromDiskToRam(video.path);
+                System.out.println("LOAD VIDEO");
                 List<byte[]> chunckedData = Util.chunkifyFile(fileData);
+                System.out.println("CHUNK VIDEO");
                 for (byte[] buffer : chunckedData){
+                    System.out.println("BUFFERING");
                     outSub.writeObject(buffer);
                     outSub.flush();
                 }

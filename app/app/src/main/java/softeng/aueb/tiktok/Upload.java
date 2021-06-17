@@ -30,29 +30,24 @@ import com.jaiselrahman.filepicker.model.MediaFile;
 
 import org.jetbrains.annotations.NotNull;
 
-
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.Collections;
 import java.util.List;
-import java.util.regex.Pattern;
+import java.util.TreeMap;
 
 import static android.app.Activity.RESULT_CANCELED;
 import static android.app.Activity.RESULT_OK;
 
-
+@SuppressWarnings("all")
 public class Upload extends Fragment implements View.OnClickListener{
 
     private static int VIDEO_RECORD_CODE = 101;
     private static int CAMERA_PERMISSION_CODE = 100;
 
-    ArrayList<String> brokers = new ArrayList<>();
+    TreeMap<Integer, String> brokers = new TreeMap<>();
     String channelname;
     MediaMetadataRetriever mmr = new MediaMetadataRetriever();
     VideoFile video;
@@ -91,9 +86,9 @@ public class Upload extends Fragment implements View.OnClickListener{
         assert tiktok != null;
         //port = tiktok.port;
         channelname = tiktok.username;
-        brokers.add("192.168.1.3,4000");
-        brokers.add("192.168.1.3,4001");
-        brokers.add("192.168.1.3,4002");
+        brokers.put(Util.getModMd5("192.168.1.4,4000"),"192.168.1.4,4000");
+        brokers.put(Util.getModMd5("192.168.1.4,4001"),"192.168.1.4,4001");
+        brokers.put(Util.getModMd5("192.168.1.4,4002"),"192.168.1.4,4002");
     }
 
     @SuppressLint("NonConstantResourceId")
@@ -230,22 +225,12 @@ public class Upload extends Fragment implements View.OnClickListener{
             hashtag = hashtags.getText().toString();
             int toSubHaSH = Util.getModMd5(hashtag);
             toSubHaSH /= 3;
-            ArrayList<Integer> hashes = new ArrayList<>();
-            for (String ip : brokers){
-                hashes.add(Util.getModMd5(ip));
-            }
-            Log.v("NNAMe",Integer.toString(toSubHaSH));
-            Collections.sort(hashes);
-            brokers.sort((o1, o2) -> {
-                int hash1 = Util.getModMd5(o1);
-                int hash2 = Util.getModMd5(o2);
-                return Integer.compare(hash1, hash2);
-            });
-            String temp = "";
 
-            for (int i = 0; i<3; i++){
-                if (toSubHaSH< hashes.get(i)){
+            String temp="";
+            for (int i : brokers.keySet()){
+                if (toSubHaSH < i){
                     temp = brokers.get(i);
+                    break;
                 }
             }
             String[] temp2 = temp.split(",");
