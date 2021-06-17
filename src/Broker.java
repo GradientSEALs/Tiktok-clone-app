@@ -177,6 +177,7 @@ public class Broker extends Node {
                             out.close();
                             Util.debug("file closed");
                             System.out.println("Finished video receiving");
+                            pushToAllSubs(video,channelName);
                             _stop();
                             break;
 
@@ -362,42 +363,51 @@ public class Broker extends Node {
         }
 
 
-        public void pushToAllSubs() throws IOException, ClassNotFoundException {
-            Iterator it = subs.entrySet().iterator();
-            while (it.hasNext()){
-                Map.Entry pair = (Map.Entry) it.next();
-                String subbed = (String) pair.getKey();
-                ArrayList<String> info = (ArrayList<String>) pair.getValue();
-                Util.Pair<String,Integer> contactInfo;
-                if (ChannelServerInfo.containsKey(subbed)){
-                    contactInfo = ChannelServerInfo.get(subbed);
-                }
-                else continue;
-                Socket subscriber = new Socket(contactInfo.item1,contactInfo.item2);
-                ObjectOutputStream outSub = new ObjectOutputStream(subscriber.getOutputStream());
-                ObjectInputStream inSub = new ObjectInputStream(subscriber.getInputStream());
-                File folder = new File(""+directory);
-                File[] listOfFiles = folder.listFiles();
+        public void pushToAllSubs(VideoFile videoFile, String contentCreator) throws IOException, ClassNotFoundException {
 
-                for (File file : listOfFiles) {
-                    if (file.isFile()) {
-                        byte[] fileData = Util.loadVideoFromDiskToRam(file.getName());
-                        List<byte[]> chunckedData = Util.chunkifyFile(fileData);
-                        for (byte[] buffer : chunckedData){
-                            outSub.writeObject(buffer);
-                            outSub.flush();
-                        }
-                        outSub.writeObject(null);
-                        outSub.flush();
-                    }
+            ArrayList<String> contentSubs = subs.get(contentCreator);
+            if (contentSubs == null){
+                return;
+            }
+            for (String subsciber : contentSubs){
+                String ip = ChannelServerInfo.get(subsciber).item1;
+                int port = ChannelServerInfo.get(subsciber).item2;
+
+                Socket subSocket = new Socket(ip,port);
+                if (subSocket.getInetAddress().isReachable(5000)){
+                    System.out.println("Subscriber not connected");
+                    continue;
                 }
+                ObjectOutputStream outSub = new ObjectOutputStream(subSocket.getOutputStream());
+                ObjectInputStream inSub = new ObjectInputStream(subSocket.getInputStream());
+                outSub.writeByte(1);
+                outSub.flush();
+                System.out.println("SENT BYTE");
+
+                outSub.writeObject(videoFile);
+                outSub.flush();
+                System.out.println("SENT VIDEO");
+                byte[] fileData = Util.loadVideoFromDiskToRam(videoFile.path);
+                System.out.println("LOAD VIDEO");
+                List<byte[]> chunckedData = Util.chunkifyFile(fileData);
+                for (byte[] buffer : chunckedData){
+                    outSub.writeObject(buffer);
+                    outSub.flush();
+                }
+                outSub.writeObject(null);
+                outSub.flush();
+                outSub.writeByte(0);
+                outSub.flush();
+                System.out.println("Sent video to sub");
             }
         }
 
         public void pushToSub(String creator,String ip, int port) throws IOException, ClassNotFoundException{
             Socket subscriber = new Socket(ip,port);
             ObjectOutputStream outSub = new ObjectOutputStream(subscriber.getOutputStream());
+            System.out.println("out");
             ObjectInputStream inSub = new ObjectInputStream(subscriber.getInputStream());
+            System.out.println("in");
             System.out.println(channelContent);
             ArrayList<VideoFile> videos = channelContent.get(creator);
 
@@ -426,9 +436,7 @@ public class Broker extends Node {
                 byte[] fileData = Util.loadVideoFromDiskToRam(video.path);
                 System.out.println("LOAD VIDEO");
                 List<byte[]> chunckedData = Util.chunkifyFile(fileData);
-                System.out.println("CHUNK VIDEO");
                 for (byte[] buffer : chunckedData){
-                    System.out.println("BUFFERING");
                     outSub.writeObject(buffer);
                     outSub.flush();
                 }

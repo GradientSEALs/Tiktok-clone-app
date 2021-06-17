@@ -42,7 +42,7 @@ import static android.app.Activity.RESULT_CANCELED;
 import static android.app.Activity.RESULT_OK;
 
 @SuppressWarnings("all")
-public class Upload extends Fragment implements View.OnClickListener{
+public class Upload extends Fragment implements View.OnClickListener {
 
     private static int VIDEO_RECORD_CODE = 101;
     private static int CAMERA_PERMISSION_CODE = 100;
@@ -59,12 +59,13 @@ public class Upload extends Fragment implements View.OnClickListener{
     EditText hashtags;
     Button uploadButton;
     EditText videoName;
+
     @Nullable
     @org.jetbrains.annotations.Nullable
     @Override
     public View onCreateView(@NonNull @NotNull LayoutInflater inflater, @Nullable @org.jetbrains.annotations.Nullable ViewGroup container, @Nullable @org.jetbrains.annotations.Nullable Bundle savedInstanceState) {
 
-        view = inflater.inflate(R.layout.upload_layout,container,false);
+        view = inflater.inflate(R.layout.upload_layout, container, false);
         capture = view.findViewById(R.id.CaptureVideo);
         files = view.findViewById(R.id.LookIntoFiles);
         hashtags = view.findViewById(R.id.hashtags);
@@ -86,9 +87,9 @@ public class Upload extends Fragment implements View.OnClickListener{
         assert tiktok != null;
         //port = tiktok.port;
         channelname = tiktok.username;
-        brokers.put(Util.getModMd5("192.168.1.4,4000"),"192.168.1.4,4000");
-        brokers.put(Util.getModMd5("192.168.1.4,4001"),"192.168.1.4,4001");
-        brokers.put(Util.getModMd5("192.168.1.4,4002"),"192.168.1.4,4002");
+        brokers.put(Util.getModMd5("192.168.1.4,4000"), "192.168.1.4,4000");
+        brokers.put(Util.getModMd5("192.168.1.4,4001"), "192.168.1.4,4001");
+        brokers.put(Util.getModMd5("192.168.1.4,4002"), "192.168.1.4,4002");
     }
 
     @SuppressLint("NonConstantResourceId")
@@ -98,13 +99,12 @@ public class Upload extends Fragment implements View.OnClickListener{
             case R.id.CaptureVideo:  //capture
 
 
-                if(isCameraPresentInPhone()){
+                if (isCameraPresentInPhone()) {
                     Log.i("VIDEO_RECORD_TAG", "Camera is detected");
                     getCameraPermission();
                     recordVideo();
 
-                }
-                else{
+                } else {
                     Log.i("VIDEO_RECORD_TAG", "No camera is detected");
                 }
                 break;
@@ -117,12 +117,14 @@ public class Upload extends Fragment implements View.OnClickListener{
             case R.id.uploadButton:
                 //mmr.setDataSource(path);
 
-                video = new VideoFile(videoName.getText().toString()+".mp4");
+                video = new VideoFile(videoName.getText().toString() + ".mp4");
                 video.setPath(path);
                 video.setChannelName(channelname);
                 video.setAssociatedHashtags(hashtags.getText().toString());
                 Publisher p = new Publisher();
                 p.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                NamePublisher np = new NamePublisher();
+                np.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 
 
                 break;
@@ -130,34 +132,33 @@ public class Upload extends Fragment implements View.OnClickListener{
     }
 
 
-    private void videopicker(){
+    private void videopicker() {
         Intent intent = new Intent(getActivity(), FilePickerActivity.class);
-        intent.putExtra(FilePickerActivity.CONFIGS,new Configurations.Builder()
-        .setCheckPermission(true)
-        .setShowVideos(true)
-        .setShowImages(false)
-        .enableVideoCapture(true)
-        .setMaxSelection(1)
-        .setSkipZeroSizeFiles(true)
-        .build());
-        startActivityForResult(intent,104);
+        intent.putExtra(FilePickerActivity.CONFIGS, new Configurations.Builder()
+                .setCheckPermission(true)
+                .setShowVideos(true)
+                .setShowImages(false)
+                .enableVideoCapture(true)
+                .setMaxSelection(1)
+                .setSkipZeroSizeFiles(true)
+                .build());
+        startActivityForResult(intent, 104);
     }
 
     @Override
-    public void onActivityResult(int requestCode, int resultCode,@Nullable Intent data){
-        super.onActivityResult(requestCode,resultCode,data);
-        switch (requestCode){
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        switch (requestCode) {
             case 101:
-                if(requestCode==VIDEO_RECORD_CODE ) {
+                if (requestCode == VIDEO_RECORD_CODE) {
 
                     if (resultCode == RESULT_OK) {
                         videoUri = data.getData();
-                        Log.i("VIDEO_RECORD_TAG","VIDEO RECORDED AT PATH : " + videoUri);
-                    } else if(resultCode == RESULT_CANCELED) {
-                        Log.i("VIDEO_RECORD_TAG","VIDEO RECORDING IS CANCELLED");
-                    }
-                    else{
-                        Log.i("VIDEO_RECORD_TAG","VIDEO RECORDING FAILED");
+                        Log.i("VIDEO_RECORD_TAG", "VIDEO RECORDED AT PATH : " + videoUri);
+                    } else if (resultCode == RESULT_CANCELED) {
+                        Log.i("VIDEO_RECORD_TAG", "VIDEO RECORDING IS CANCELLED");
+                    } else {
+                        Log.i("VIDEO_RECORD_TAG", "VIDEO RECORDING FAILED");
 
                     }
                 }
@@ -165,7 +166,7 @@ public class Upload extends Fragment implements View.OnClickListener{
                 break;
 
             case 104:
-                if(resultCode==RESULT_OK && data!= null) {
+                if (resultCode == RESULT_OK && data != null) {
                     ArrayList<MediaFile> mediaFiles = data.getParcelableArrayListExtra(
                             FilePickerActivity.MEDIA_FILES
                     );
@@ -182,25 +183,24 @@ public class Upload extends Fragment implements View.OnClickListener{
     }
 
     private void displatToast(String s) {
-        Toast.makeText(getActivity().getApplicationContext(),s,Toast.LENGTH_SHORT).show();
+        Toast.makeText(getActivity().getApplicationContext(), s, Toast.LENGTH_SHORT).show();
     }
 
 
-    private boolean isCameraPresentInPhone(){
-        if(getActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)){
+    private boolean isCameraPresentInPhone() {
+        if (getActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)) {
             return true;
-        }
-        else{
+        } else {
             return false;
         }
 
     }
 
-    private void getCameraPermission(){
-        if(ContextCompat.checkSelfPermission(getActivity(),Manifest.permission.CAMERA)
-        == PackageManager.PERMISSION_DENIED){
-            ActivityCompat.requestPermissions(getActivity(),new String[]
-                    {Manifest.permission.CAMERA},CAMERA_PERMISSION_CODE );
+    private void getCameraPermission() {
+        if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.CAMERA)
+                == PackageManager.PERMISSION_DENIED) {
+            ActivityCompat.requestPermissions(getActivity(), new String[]
+                    {Manifest.permission.CAMERA}, CAMERA_PERMISSION_CODE);
         }
 
     }
@@ -211,7 +211,7 @@ public class Upload extends Fragment implements View.OnClickListener{
         startActivityForResult(camera, VIDEO_RECORD_CODE);
     }
 
-    private class Publisher extends AsyncTask<Void,String,String>{
+    private class Publisher extends AsyncTask<Void, String, String> {
 
         Socket broker = null;
         ObjectInputStream in = null;
@@ -226,9 +226,9 @@ public class Upload extends Fragment implements View.OnClickListener{
             int toSubHaSH = Util.getModMd5(hashtag);
             toSubHaSH /= 3;
 
-            String temp="";
-            for (int i : brokers.keySet()){
-                if (toSubHaSH < i){
+            String temp = "";
+            for (int i : brokers.keySet()) {
+                if (toSubHaSH < i) {
                     temp = brokers.get(i);
                     break;
                 }
@@ -237,7 +237,7 @@ public class Upload extends Fragment implements View.OnClickListener{
             port = Integer.parseInt(temp2[1]);
             try {
 
-                broker = new Socket("192.168.1.4",port);
+                broker = new Socket("192.168.1.4", port);
                 in = new ObjectInputStream(broker.getInputStream());
                 out = new ObjectOutputStream(broker.getOutputStream());
                 //DataOutputStream out2 = new DataOutputStream(broker.getOutputStream());
@@ -264,9 +264,58 @@ public class Upload extends Fragment implements View.OnClickListener{
 
             return null;
         }
+    }
+    private class NamePublisher extends AsyncTask<Void,String,String>{
+
+        Socket broker = null;
+        ObjectInputStream in = null;
+        ObjectOutputStream out = null;
+        int port;
+        @Override
+        protected String doInBackground(Void... voids) {
+
+            int toSubHaSH = Util.getModMd5(channelname);
+            toSubHaSH /= 3;
+
+            String temp="";
+            for (int i : brokers.keySet()){
+                if (toSubHaSH < i){
+                    temp = brokers.get(i);
+                    break;
+                }
+            }
+            String[] temp2 = temp.split(",");
+            port = Integer.parseInt(temp2[1]);
+            try {
+
+                broker = new Socket("192.168.1.4",port);
+                in = new ObjectInputStream(broker.getInputStream());
+                out = new ObjectOutputStream(broker.getOutputStream());
+                //DataOutputStream out2 = new DataOutputStream(broker.getOutputStream());
+                out.writeByte(2);
+                out.flush();
+
+                out.writeObject(video);
+                out.flush();
+
+                out.writeObject(channelname);
+                out.flush();
+
+                byte[] videoData = Util.loadVideoFromDiskToRam(video);
+                List<byte[]> chunckedVideo = Util.chunkifyFile(videoData);
+                for (byte[] data : chunckedVideo) {
+                    out.writeObject(data);
+                    out.flush();
+                }
+                out.writeObject(null);
+                out.flush();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            return null;
+        }
 
 
     }
-
-
 }
