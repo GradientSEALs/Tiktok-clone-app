@@ -49,7 +49,7 @@ public class Tiktokactivity extends AppCompatActivity {
     ArrayList<String> brokers;
     ServerSocket server;
     File file;
-    ArrayList<VideoFile> videos = new ArrayList<>();
+    static ArrayList<VideoFile> videos = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -189,6 +189,7 @@ public class Tiktokactivity extends AppCompatActivity {
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
+
                 }
 
             } catch (FileNotFoundException e) {
