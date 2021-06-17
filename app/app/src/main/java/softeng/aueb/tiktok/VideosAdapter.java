@@ -53,14 +53,15 @@ public class VideosAdapter extends RecyclerView.Adapter<VideosAdapter.VideoViewH
             super(itemView);
             videoView = itemView.findViewById(R.id.videoView);
             textVideoTitle = itemView.findViewById(R.id.textVideoTitle);
-            //textVideoChannel = itemView.findViewById(R.id.textVideoChannelName);
+            textVideoChannel = itemView.findViewById(R.id.textVideoChannelName);
             textVideoHashtags = itemView.findViewById(R.id.textVideoHashtags);
             progressBar = itemView.findViewById(R.id.videoProgressbar);
+
         }
 
         void setVideoData(VideoFile videoItem) {
             textVideoTitle.setText(videoItem.getVideoName());
-            textVideoTitle.setText(videoItem.getChannelName());
+            textVideoChannel.setText(videoItem.getChannelName());
             textVideoHashtags.setText(videoItem.getAssociatedHashtags().toString());
             videoView.setVideoPath(String.valueOf(videoItem.path));
             videoView.setOnPreparedListener(mp -> {
