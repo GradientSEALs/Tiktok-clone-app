@@ -1,5 +1,6 @@
 package softeng.aueb.tiktok;
 
+import android.annotation.SuppressLint;
 import android.media.MediaPlayer;
 import android.os.Debug;
 import android.view.LayoutInflater;
@@ -59,10 +60,11 @@ public class VideosAdapter extends RecyclerView.Adapter<VideosAdapter.VideoViewH
 
         }
 
+        @SuppressLint("SetTextI18n")
         void setVideoData(VideoFile videoItem) {
-            textVideoTitle.setText(videoItem.getVideoName());
-            textVideoChannel.setText(videoItem.getChannelName());
-            textVideoHashtags.setText(videoItem.getAssociatedHashtags().toString());
+            textVideoTitle.setText("Title: "+videoItem.getVideoName());
+            textVideoChannel.setText("ChannelName: "+videoItem.getChannelName());
+            textVideoHashtags.setText("Hashtags: "+videoItem.getAssociatedHashtagsString());
             videoView.setVideoPath(String.valueOf(videoItem.path));
             videoView.setOnPreparedListener(mp -> {
                 progressBar.setVisibility(View.GONE);

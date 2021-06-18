@@ -94,4 +94,12 @@ public class VideoFile implements Serializable {
     public ArrayList<String> getAssociatedHashtags() {
         return associatedHashtags;
     }
+
+    public String getAssociatedHashtagsString() {
+        String temp = "";
+        for (String s : associatedHashtags){
+            temp = temp + " " +s;
+        }
+        return temp;
+    }
 }
