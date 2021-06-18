@@ -127,36 +127,44 @@ public class Broker extends Node {
                             System.out.println(conn.getInetAddress().getHostAddress());
                             ChannelServerInfo.put(channelName,new Util.Pair<String,Integer>(conn.getInetAddress().getHostAddress(),7000));
                             channels.add(channelName);
-                            //ArrayList<String> ipports = new ArrayList<>();
-                            /*for (Util.Pair<String, Integer> ipport : ListOfBrokers.values()){
-                                String str = ipport.item1+":"+ipport.item2;
-                                ipports.add(str);
-                            }
-                            oos.writeObject(ipports);
-                            oos.flush();*/
                             break;
                         case 2: //publish a video
                             Util.debug("Reading video");
                             softeng.aueb.tiktok.VideoFile video = (VideoFile) ois.readObject();
                             VideosPublisherConnection.add(video);
+
                             String hashtag = (String) ois.readObject();
-                            //String appip = (String) ois.readObject();
-                            //int appport = (int) ois.readObject();
+
                             channelName = video.getChannelName();
+
                             video.setPath(directory+"/"+video.getVideoName());
+
                             boolean contains = channelContent.containsKey(channelName);
+
                             boolean contains_ = channelContent.containsKey(hashtag);
+
                             System.out.println("Starting to add channel content");
-                            if (!contains)
+
+                            if (!contains) {
                                 channelContent.put(channelName, new ArrayList<VideoFile>());
-                            if (!contains_)
+                                System.out.println("created arraylist channel");
+                            }
+                            if (!contains_) {
                                 channelContent.put(hashtag, new ArrayList<VideoFile>());
+                                System.out.println("created arraylist hashtag");
+
+                            }
+
                             channelContent.get(channelName).add(video);
+                            System.out.println("added to arraylist channel");
+
+
                             channelContent.get(hashtag).add(video);
+                            System.out.println("added to arraylist hashtag");
+
                             hashTags.add(hashtag);
+
                             Util.debug("Added hashtag to broker's hashtag");
-                            channels.add(video.getChannelName());
-                            Util.debug("Added channel to broker's channel's");
                             FileOutputStream out = new FileOutputStream(directory+"/"+video.getVideoName());
                             Util.debug(directory+"/"+video.getVideoName());
                             byte[] bytes = new byte[512];
@@ -178,6 +186,7 @@ public class Broker extends Node {
                             Util.debug("file closed");
                             System.out.println("Finished video receiving");
                             pushToAllSubs(video,channelName);
+                            pushToAllSubs(video,hashtag);
                             _stop();
                             break;
 
@@ -367,6 +376,7 @@ public class Broker extends Node {
 
             ArrayList<String> contentSubs = subs.get(contentCreator);
             if (contentSubs == null){
+                System.out.println("NULL");
                 return;
             }
             for (String subsciber : contentSubs){
@@ -374,10 +384,10 @@ public class Broker extends Node {
                 int port = ChannelServerInfo.get(subsciber).item2;
 
                 Socket subSocket = new Socket(ip,port);
-                if (subSocket.getInetAddress().isReachable(5000)){
+                /*if (subSocket.getInetAddress().isReachable(5000)){
                     System.out.println("Subscriber not connected");
                     continue;
-                }
+                }*/
                 ObjectOutputStream outSub = new ObjectOutputStream(subSocket.getOutputStream());
                 ObjectInputStream inSub = new ObjectInputStream(subSocket.getInputStream());
                 outSub.writeByte(1);
