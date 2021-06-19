@@ -26,32 +26,17 @@ public class VideoFile implements Serializable {
             associatedHashtags.add(s);
         }
 
-        /*this.videoDetails = new JSONObject();
-        videoDetails.put("action","GET_VIDEO");
-        videoDetails.put("videoName",videoName);
-        videoDetails.put("channelName",channelName);
-        videoDetails.put("path",path);*/
+       
     }
     public VideoFile(String videoName){
         this.videoName = videoName;
-        associatedHashtags = new ArrayList<>();
-        /*this.videoDetails = new JSONObject();
-        try {
-            videoDetails.put("action","GET_VIDEO");
-            videoDetails.put("videoName",videoName);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }*/
+
     }
 
     public void addHastags( ArrayList<String> hashtags){
         this.channelName = channelName;
         this.associatedHashtags = hashtags;
-        /*try {
-            videoDetails.put("associatedHashtags", Arrays.toString(new ArrayList[]{associatedHashtags}));
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }*/
+
     }
 
     public void setChannelName(String channelName) {
