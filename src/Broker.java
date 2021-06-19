@@ -125,7 +125,7 @@ public class Broker extends Node {
                                 } else continue;
                             }
                             System.out.println(conn.getInetAddress().getHostAddress());
-                            ChannelServerInfo.put(channelName,new Util.Pair<String,Integer>(conn.getInetAddress().getHostAddress(),7000));
+                            ChannelServerInfo.put(channelName,new Util.Pair<String,Integer>("127.0.0.1",7000));
                             channels.add(channelName);
                             break;
                         case 2: //publish a video
@@ -301,6 +301,8 @@ public class Broker extends Node {
                             }
                             System.out.println(channame);
                             Util.Pair<String,Integer> infos = ChannelServerInfo.get(channame);
+                            System.out.println("ip: "+infos.item1);
+                            System.out.println("port "+infos.item2);
                             pushToSub(subchannel,infos.item1, infos.item2);
                             break;
 
@@ -413,6 +415,8 @@ public class Broker extends Node {
         }
 
         public void pushToSub(String creator,String ip, int port) throws IOException, ClassNotFoundException{
+            System.out.println("ip in func "+ip);
+            System.out.println("port in func "+port);
             Socket subscriber = new Socket(ip,port);
             ObjectOutputStream outSub = new ObjectOutputStream(subscriber.getOutputStream());
             System.out.println("out");

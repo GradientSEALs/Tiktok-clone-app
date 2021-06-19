@@ -13,24 +13,10 @@ public class Util {
 
     /**
      *
-     * @param videoFile pojo
-     * @return the mp4 binary data for that video
+     * @param videoFile 
+     * @return the path for that video
      */
-   /* public static byte[] loadVideoFromDiskToRam(VideoFile videoFile){
-        try{
-            File file = new File(videoFile.path+"/"+videoFile.videoName);
-            FileInputStream fis = new FileInputStream(file);
-            byte[] fileData = new byte[(int)file.length()];
-            fis.read(fileData);
-            return fileData;
-        }catch (FileNotFoundException e){
-            System.err.println("File not found exception for selected song");
-        }catch (IOException e){
-            System.err.println("IOException from loadSongFromDiskToRam() in util package");
-        }
-        return null;
-    }
-*/
+    
     //============= OVERLOADED FOR STRING PATH INPUT ===========================//
     public static byte[] loadVideoFromDiskToRam(String videoFile){
         try{
